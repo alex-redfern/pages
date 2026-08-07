@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="pm">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#241B12">
+<title>Routine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EBE6; --panel:#FCFCFB; --ink:#15171A; --dim:#6B7069;
+  --rule:#D3D6CE; --band:#B9BEB5; --accent:#2F6B55; --accent-ink:#FFFFFF;
+  --shadow:0 1px 0 rgba(0,0,0,.05);
+}
+html[data-mode="pm"]{
+  --bg:#221A11; --panel:#2E2418; --ink:#F2EBE1; --dim:#9E8F7C;
+  --rule:#42341F; --band:#5A4728; --accent:#C98A31; --accent-ink:#221A11;
+  --shadow:0 1px 0 rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Archivo",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:0 16px calc(56px + env(safe-area-inset-bottom));
+  max-width:640px; margin:0 auto;
+  transition:background-color .5s ease, color .5s ease;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10px;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+}
+header{padding:calc(28px + env(safe-area-inset-top)) 0 18px}
+h1{
+  font-size:clamp(40px,13vw,58px); line-height:.92; margin:10px 0 12px;
+  font-weight:700; letter-spacing:-.035em;
+}
+.stamp{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--dim);
+}
+.stamp b{color:var(--accent); font-weight:500}
+
+/* controls */
+.controls{display:flex; gap:8px; align-items:center; margin:0 0 22px}
+.toggle{display:flex; border:1px solid var(--rule); border-radius:2px; overflow:hidden}
+.toggle button{
+  appearance:none; background:transparent; border:0; color:var(--dim);
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  padding:9px 13px; cursor:pointer;
+}
+.toggle button[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink)}
+select{
+  appearance:none; background:transparent; color:var(--ink);
+  border:1px solid var(--rule); border-radius:2px; padding:9px 12px;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+}
+.now{
+  margin-left:auto; background:none; border:0; color:var(--accent); cursor:pointer;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; padding:9px 2px;
+}
+.now[hidden]{display:none}
+
+/* the label stack */
+.stack{display:flex; flex-direction:column; gap:8px}
+.label{
+  display:grid; grid-template-columns:34px 1fr 26px; align-items:start;
+  gap:12px; background:var(--panel); border:1px solid var(--rule);
+  border-radius:2px; padding:14px 14px 12px; box-shadow:var(--shadow);
+  cursor:pointer; text-align:left; width:100%; color:inherit; font:inherit;
+}
+.label.buy{border-style:dashed}
+.label .idx{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--dim);
+  padding-top:3px; letter-spacing:.06em;
+}
+.label .name{font-size:17px; font-weight:600; letter-spacing:-.015em; line-height:1.2}
+.label .band{height:5px; background:var(--band); margin:9px 0 8px; opacity:.55}
+.label .role{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.5;
+  color:var(--dim); text-transform:uppercase; letter-spacing:.06em;
+}
+.label .tag{
+  display:inline-block; margin-top:8px; font-family:"IBM Plex Mono",monospace;
+  font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+  border:1px solid var(--accent); color:var(--accent); padding:2px 5px; border-radius:2px;
+}
+.tick{
+  width:22px; height:22px; border:1px solid var(--rule); border-radius:50%;
+  margin-top:2px; position:relative; flex:none;
+}
+.label[aria-pressed="true"]{opacity:.42}
+.label[aria-pressed="true"] .tick{background:var(--accent); border-color:var(--accent)}
+.label[aria-pressed="true"] .tick::after{
+  content:""; position:absolute; left:7px; top:3px; width:5px; height:10px;
+  border:solid var(--accent-ink); border-width:0 2px 2px 0; transform:rotate(42deg);
+}
+.label:focus-visible,button:focus-visible,select:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+}
+
+/* sections */
+h2{
+  font-size:11px; font-family:"IBM Plex Mono",monospace; font-weight:500;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+  margin:46px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--rule);
+}
+table{width:100%; border-collapse:collapse; font-size:13px}
+th{
+  font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--dim); text-align:left;
+  padding:0 0 8px; font-weight:500;
+}
+td{padding:11px 8px 11px 0; border-top:1px solid var(--rule); vertical-align:top}
+td:last-child{padding-right:0}
+tr.today td{color:var(--accent)}
+tr.today td:first-child{font-weight:700}
+.day{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em; white-space:nowrap}
+.pmname{font-weight:600}
+.pmlist{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--dim); line-height:1.55; margin-top:3px}
+
+ul{list-style:none; margin:0; padding:0}
+li{padding:12px 0; border-top:1px solid var(--rule); font-size:14px; line-height:1.5}
+li:first-child{border-top:0}
+li .n{font-weight:600}
+li .d{display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--dim); margin-top:4px; line-height:1.6; letter-spacing:.02em}
+.note{font-size:13.5px; line-height:1.65; color:var(--dim); margin:14px 0 0}
+footer{margin:44px 0 0; padding-top:16px; border-top:1px solid var(--rule)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">The Ordinary · standing routine</div>
+  <h1 id="headline">Tonight</h1>
+  <div class="stamp" id="stamp"></div>
+</header>
+
+<div class="controls">
+  <div class="toggle" role="group" aria-label="Time of day">
+    <button id="btnAM" aria-pressed="false">AM</button>
+    <button id="btnPM" aria-pressed="true">PM</button>
+  </div>
+  <select id="daySel" aria-label="Day"></select>
+  <button class="now" id="btnNow" hidden>Back to now</button>
+</div>
+
+<section class="stack" id="stack"></section>
+<p class="note" id="stackNote"></p>
+
+<h2>The week</h2>
+<table>
+  <thead><tr><th>Day</th><th>Morning</th><th>Evening</th></tr></thead>
+  <tbody id="weekBody"></tbody>
+</table>
+
+<h2>On the shelf</h2>
+<ul id="own"></ul>
+
+<h2>Worth adding</h2>
+<ul id="buy"></ul>
+
+<h2>House rules</h2>
+<ul>
+  <li><span class="n">Never acids and retinoid the same night.</span><span class="d">Leave a clear night between them. Saturday exfoliates, Sunday recovers.</span></li>
+  <li><span class="n">Ease into the retinoid.</span><span class="d">Monday only for the first month. Add Thursday once your skin stops complaining.</span></li>
+  <li><span class="n">Hyaluronic acid goes on damp skin.</span><span class="d">On dry skin it pulls moisture out rather than in. Don't dawdle after rinsing.</span></li>
+  <li><span class="n">Wait 30 seconds between layers.</span><span class="d">Rushing is what makes serums ball up and pill.</span></li>
+  <li><span class="n">Sunscreen is what makes the rest work.</span><span class="d">Brightening without SPF is a bucket with no bottom. Every morning, weather irrelevant.</span></li>
+  <li><span class="n">Give it twelve weeks.</span><span class="d">Nothing here shows results in under a month. The skill is not fiddling with it.</span></li>
+</ul>
+
+<footer><div class="eyebrow">Add to Home Screen for one-tap access</div></footer>
+
+<script>
+const P = {
+  cleanse:{n:"Cleanse",r:"Squalane or glucoside foaming cleanser",buy:1},
+  nia:{n:"Niacinamide 10% + Zinc 1%",r:"Tone, oil control, brightness"},
+  hya:{n:"Hyaluronic Acid 2% + B5",r:"Apply to damp skin — hydration base"},
+  arb:{n:"Alpha Arbutin 2% + HA",r:"Dark spots and uneven tone"},
+  gf:{n:"GF 15% Solution",r:"Growth factors — firmness and repair"},
+  caf:{n:"Caffeine 5% + EGCG",r:"Eye area only — pat, don't rub"},
+  nmf:{n:"Natural Moisturizing Factors + HA",r:"Seals everything in — always last but SPF"},
+  spf:{n:"UV Filters SPF 45 Serum",r:"Generous layer. Non-negotiable.",buy:1},
+  ret:{n:"Granactive Retinoid 2% Emulsion",r:"Texture and fine lines — pea-sized, face only",buy:1},
+  gly:{n:"Glycolic Acid 7% Exfoliating Toner",r:"Cotton pad, avoid eyes. Nothing else tonight.",buy:1}
+};
+const AM = ["cleanse","caf","nia","nmf","spf"];
+const WEEK = [
+  {d:"Sunday",   t:"Repair",     s:["cleanse","hya","gf","nmf"]},
+  {d:"Monday",   t:"Retinoid",   s:["cleanse","hya","ret","nmf"]},
+  {d:"Tuesday",  t:"Brightening",s:["cleanse","caf","hya","arb","nmf"]},
+  {d:"Wednesday",t:"Repair",     s:["cleanse","hya","gf","nmf"]},
+  {d:"Thursday", t:"Retinoid",   s:["cleanse","hya","ret","nmf"]},
+  {d:"Friday",   t:"Brightening",s:["cleanse","caf","hya","arb","nmf"]},
+  {d:"Saturday", t:"Exfoliation",s:["cleanse","gly","hya","nmf"]}
+];
+const NOTES = {
+  Retinoid:"Skip the arbutin and GF tonight — the retinoid works alone.",
+  Brightening:"The workhorse night. Arbutin plus tomorrow's sunscreen is what shifts pigmentation.",
+  Repair:"Gentle night. GF sits after the hyaluronic acid, before moisturiser.",
+  Exfoliation:"Acid night. No retinoid, no GF, no arbutin — just rehydrate and stop.",
+  AM:"Identical every day. Four minutes, and the sunscreen is the point of it."
+};
+
+let now = new Date(), day = now.getDay(), mode = (now.getHours() >= 4 && now.getHours() < 16) ? "am" : "pm", pinned = false;
+const ticked = new Set();
+
+const $ = id => document.getElementById(id);
+const sel = $("daySel");
+WEEK.forEach((w,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=w.d.slice(0,3).toUpperCase(); sel.appendChild(o); });
+
+function steps(){ return mode==="am" ? AM : WEEK[day].s; }
+
+function render(){
+  document.documentElement.dataset.mode = mode;
+  document.querySelector('meta[name=theme-color]').content = mode==="pm" ? "#221A11" : "#E9EBE6";
+  const isNow = !pinned;
+  const list = steps();
+  $("headline").textContent = isNow ? (mode==="am" ? "This morning" : "Tonight")
+                                    : WEEK[day].d + (mode==="am" ? " AM" : " PM");
+  const focus = mode==="am" ? "Standard morning" : WEEK[day].t;
+  $("stamp").innerHTML = WEEK[day].d.slice(0,3).toUpperCase() + " · <b>" + focus.toUpperCase() + "</b> · " + list.length + " STEPS";
+  $("stackNote").textContent = mode==="am" ? NOTES.AM : NOTES[WEEK[day].t];
+  $("btnAM").setAttribute("aria-pressed", mode==="am");
+  $("btnPM").setAttribute("aria-pressed", mode==="pm");
+  $("btnNow").hidden = isNow;
+  sel.value = day;
+
+  $("stack").innerHTML = list.map((k,i)=>{
+    const p = P[k], on = ticked.has(mode+day+k);
+    return `<button class="label${p.buy?" buy":""}" data-k="${k}" aria-pressed="${on}">
+      <span class="idx">${String(i+1).padStart(2,"0")}</span>
+      <span><span class="name">${p.n}</span><span class="band"></span>
+      <span class="role">${p.r}</span>${p.buy?'<span class="tag">not yet owned</span>':""}</span>
+      <span class="tick"></span></button>`;
+  }).join("");
+
+  $("weekBody").innerHTML = WEEK.map((w,i)=>
+    `<tr class="${i===now.getDay()?"today":""}"><td class="day">${w.d.slice(0,3).toUpperCase()}</td>
+     <td class="day">STANDARD</td>
+     <td><span class="pmname">${w.t}</span><span class="pmlist">${w.s.map(k=>P[k].n.split(/ \d|,| \+/)[0]).join(" → ")}</span></td></tr>`
+  ).join("");
+}
+
+$("stack").addEventListener("click", e=>{
+  const b = e.target.closest(".label"); if(!b) return;
+  const id = mode+day+b.dataset.k;
+  ticked.has(id) ? ticked.delete(id) : ticked.add(id);
+  render();
+});
+$("btnAM").onclick = ()=>{ mode="am"; pinned=true; render(); };
+$("btnPM").onclick = ()=>{ mode="pm"; pinned=true; render(); };
+sel.onchange = ()=>{ day=+sel.value; pinned=true; render(); };
+$("btnNow").onclick = ()=>{
+  now=new Date(); day=now.getDay();
+  mode=(now.getHours()>=4&&now.getHours()<16)?"am":"pm"; pinned=false; render();
+};
+
+const OWN = ["nia","hya","arb","gf","caf","nmf"], BUY = ["spf","cleanse","ret","gly"];
+const why = {
+  spf:"Buy this first. Everything else is wasted without it.",
+  cleanse:"A plain, active-free cleanser so your serums do the work.",
+  ret:"The gentlest retinoid they make. This is your smoothness lever.",
+  gly:"Once a week. Sweeps off the dead surface layer that dulls everything.",
+  nia:"", hya:"", arb:"", gf:"", caf:"", nmf:""
+};
+$("own").innerHTML = OWN.map(k=>`<li><span class="n">${P[k].n}</span><span class="d">${P[k].r}</span></li>`).join("");
+$("buy").innerHTML = BUY.map(k=>`<li><span class="n">${P[k].n}</span><span class="d">${why[k]}</span></li>`).join("");
+
+render();
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && !pinned) $("btnNow").onclick(); });
+</script>
+</body>
+</html>
