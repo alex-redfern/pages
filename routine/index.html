@@ -88,7 +88,6 @@ select{
   border-radius:2px; padding:14px 14px 12px; box-shadow:var(--shadow);
   cursor:pointer; text-align:left; width:100%; color:inherit; font:inherit;
 }
-.label.buy{border-style:dashed}
 .label .idx{
   font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--dim);
   padding-top:3px; letter-spacing:.06em;
@@ -98,11 +97,6 @@ select{
 .label .role{
   font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.5;
   color:var(--dim); text-transform:uppercase; letter-spacing:.06em;
-}
-.label .tag{
-  display:inline-block; margin-top:8px; font-family:"IBM Plex Mono",monospace;
-  font-size:9px; letter-spacing:.14em; text-transform:uppercase;
-  border:1px solid var(--accent); color:var(--accent); padding:2px 5px; border-radius:2px;
 }
 .tick{
   width:22px; height:22px; border:1px solid var(--rule); border-radius:50%;
@@ -177,9 +171,6 @@ footer{margin:44px 0 0; padding-top:16px; border-top:1px solid var(--rule)}
 <h2>On the shelf</h2>
 <ul id="own"></ul>
 
-<h2>Worth adding</h2>
-<ul id="buy"></ul>
-
 <h2>House rules</h2>
 <ul>
   <li><span class="n">Never acids and retinoid the same night.</span><span class="d">Leave a clear night between them. Saturday exfoliates, Sunday recovers.</span></li>
@@ -194,16 +185,16 @@ footer{margin:44px 0 0; padding-top:16px; border-top:1px solid var(--rule)}
 
 <script>
 const P = {
-  cleanse:{n:"Cleanse",r:"Squalane or glucoside foaming cleanser",buy:1},
+  cleanse:{n:"Cleanse",r:"Squalane or glucoside foaming cleanser"},
   nia:{n:"Niacinamide 10% + Zinc 1%",r:"Tone, oil control, brightness"},
   hya:{n:"Hyaluronic Acid 2% + B5",r:"Apply to damp skin — hydration base"},
   arb:{n:"Alpha Arbutin 2% + HA",r:"Dark spots and uneven tone"},
   gf:{n:"GF 15% Solution",r:"Growth factors — firmness and repair"},
   caf:{n:"Caffeine 5% + EGCG",r:"Eye area only — pat, don't rub"},
   nmf:{n:"Natural Moisturizing Factors + HA",r:"Seals everything in — always last but SPF"},
-  spf:{n:"UV Filters SPF 45 Serum",r:"Generous layer. Non-negotiable.",buy:1},
-  ret:{n:"Granactive Retinoid 2% Emulsion",r:"Texture and fine lines — pea-sized, face only",buy:1},
-  gly:{n:"Glycolic Acid 7% Exfoliating Toner",r:"Cotton pad, avoid eyes. Nothing else tonight.",buy:1}
+  spf:{n:"UV Filters SPF 45 Serum",r:"Generous layer. Non-negotiable."},
+  ret:{n:"Retinol 0.5%",r:"Texture and fine lines — pea-sized, face only"},
+  gly:{n:"Glycolic Acid 7% Exfoliating Toner",r:"Cotton pad, avoid eyes. Nothing else tonight."}
 };
 const AM = ["cleanse","caf","nia","nmf","spf"];
 const WEEK = [
@@ -249,10 +240,10 @@ function render(){
 
   $("stack").innerHTML = list.map((k,i)=>{
     const p = P[k], on = ticked.has(mode+day+k);
-    return `<button class="label${p.buy?" buy":""}" data-k="${k}" aria-pressed="${on}">
+    return `<button class="label" data-k="${k}" aria-pressed="${on}">
       <span class="idx">${String(i+1).padStart(2,"0")}</span>
       <span><span class="name">${p.n}</span><span class="band"></span>
-      <span class="role">${p.r}</span>${p.buy?'<span class="tag">not yet owned</span>':""}</span>
+      <span class="role">${p.r}</span></span>
       <span class="tick"></span></button>`;
   }).join("");
 
@@ -277,16 +268,8 @@ $("btnNow").onclick = ()=>{
   mode=(now.getHours()>=4&&now.getHours()<16)?"am":"pm"; pinned=false; render();
 };
 
-const OWN = ["nia","hya","arb","gf","caf","nmf"], BUY = ["spf","cleanse","ret","gly"];
-const why = {
-  spf:"Buy this first. Everything else is wasted without it.",
-  cleanse:"A plain, active-free cleanser so your serums do the work.",
-  ret:"The gentlest retinoid they make. This is your smoothness lever.",
-  gly:"Once a week. Sweeps off the dead surface layer that dulls everything.",
-  nia:"", hya:"", arb:"", gf:"", caf:"", nmf:""
-};
+const OWN = ["cleanse","nia","hya","arb","gf","caf","nmf","spf","ret","gly"];
 $("own").innerHTML = OWN.map(k=>`<li><span class="n">${P[k].n}</span><span class="d">${P[k].r}</span></li>`).join("");
-$("buy").innerHTML = BUY.map(k=>`<li><span class="n">${P[k].n}</span><span class="d">${why[k]}</span></li>`).join("");
 
 render();
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && !pinned) $("btnNow").onclick(); });
