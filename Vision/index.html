@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>EVS Vision 2035: IBC Key Takeaways</title>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#1a222e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Vision 2035">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#00aeef; --turquoise:#00bebe; --green:#8dc63f; --orange:#f58221;
+  --red:#ed1b32; --pink:#d80b8c;
+  --light-grey:#f1f2f3; --mid-grey:#d4dce1; --dark-grey:#313c4c; --black:#1a222e; --white:#fff;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--black); color:var(--white);
+  overflow:hidden; -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ── TOP BAR ─────────────────────────────────────────── */
+.bar{
+  position:fixed; top:0; left:0; right:0; height:56px; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; background:rgba(26,34,46,.96); backdrop-filter:blur(10px);
+  border-bottom:2px solid var(--blue);
+}
+.bar-l{display:flex; align-items:center; gap:12px; min-width:0}
+.bar-l img{height:20px; width:auto; display:block; flex-shrink:0}
+.bar-div{width:1px; height:16px; background:rgba(255,255,255,.2); flex-shrink:0}
+.bar-title{font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:rgba(255,255,255,.6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.bar-r{display:flex; align-items:center; gap:10px; flex-shrink:0}
+.counter{font-size:12px; font-weight:800; letter-spacing:1px; color:rgba(255,255,255,.45); font-variant-numeric:tabular-nums}
+.ibtn{
+  width:34px; height:34px; border:1px solid rgba(255,255,255,.22); background:transparent;
+  color:rgba(255,255,255,.75); border-radius:3px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
+}
+.ibtn:hover{border-color:var(--blue); color:var(--blue)}
+.ibtn:disabled{opacity:.25; cursor:default}
+.ibtn:disabled:hover{border-color:rgba(255,255,255,.22); color:rgba(255,255,255,.75)}
+
+/* ── PROGRESS ────────────────────────────────────────── */
+.progress{position:fixed; top:56px; left:0; right:0; height:2px; background:rgba(255,255,255,.08); z-index:60}
+.progress-fill{height:100%; background:var(--blue); width:0; transition:width .25s ease}
+
+/* ── DECK ────────────────────────────────────────────── */
+.deck{position:fixed; inset:58px 0 0 0; overflow:hidden}
+.card{
+  display:none; position:absolute; inset:0;
+  flex-direction:column; justify-content:center;
+  padding:40px 56px 76px; overflow-y:auto;
+}
+.card.active{display:flex; animation:fade .22s ease}
+@keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+.card-inner{width:100%; max-width:1000px; margin:0 auto}
+
+.kicker{font-size:10px; font-weight:800; letter-spacing:2.6px; text-transform:uppercase; color:var(--blue); margin-bottom:16px}
+.kicker.pink{color:var(--pink)} .kicker.orange{color:var(--orange)} .kicker.green{color:var(--green)}
+h1{font-size:clamp(34px,5.2vw,62px); font-weight:900; line-height:1.02; letter-spacing:-2px; margin-bottom:22px}
+h2{font-size:clamp(26px,3.6vw,44px); font-weight:800; line-height:1.1; letter-spacing:-1.2px; margin-bottom:20px}
+.sub{font-size:clamp(15px,1.7vw,19px); line-height:1.62; color:rgba(255,255,255,.62); font-weight:300; max-width:820px}
+.sub strong{color:#fff; font-weight:600}
+.sub + .sub{margin-top:14px}
+
+/* say / don't blocks */
+.sd{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:30px}
+.sd-box{padding:22px 24px; border-left:3px solid; background:rgba(255,255,255,.035)}
+.sd-box.say{border-color:var(--green)}
+.sd-box.dont{border-color:var(--red)}
+.sd-label{font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px}
+.sd-box.say .sd-label{color:var(--green)}
+.sd-box.dont .sd-label{color:var(--red)}
+.sd-quote{font-size:16.5px; line-height:1.56; color:#fff; font-weight:400}
+.sd-note{font-size:13.5px; line-height:1.6; color:rgba(255,255,255,.55); margin-top:12px}
+.sd-box.dont .sd-quote{color:rgba(255,255,255,.82); font-weight:300}
+@media(max-width:900px){.sd{grid-template-columns:1fr}}
+
+/* generic grids */
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(255,255,255,.1); margin-top:28px}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(255,255,255,.1); margin-top:28px}
+.grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:rgba(255,255,255,.1); margin-top:28px}
+.cell{background:var(--black); padding:24px 22px}
+.cell-t{font-size:15px; font-weight:800; color:#fff; line-height:1.28; margin-bottom:9px}
+.cell-d{font-size:13.5px; line-height:1.6; color:rgba(255,255,255,.55)}
+.cell-n{font-size:26px; font-weight:900; color:var(--blue); line-height:1; margin-bottom:10px; letter-spacing:-1px}
+@media(max-width:900px){.grid3,.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+
+/* numbered list */
+.nlist{margin-top:26px}
+.nrow{display:grid; grid-template-columns:54px 1fr; gap:18px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,.1)}
+.nrow:last-child{border-bottom:none}
+.nnum{font-size:13px; font-weight:800; color:var(--blue); letter-spacing:1.4px; padding-top:3px}
+.nt{font-size:17px; font-weight:700; color:#fff; margin-bottom:5px; line-height:1.3}
+.nd{font-size:14px; line-height:1.6; color:rgba(255,255,255,.55)}
+
+/* quote box */
+.qbox{margin-top:28px; padding:26px 30px; background:rgba(0,174,239,.09); border-left:3px solid var(--blue)}
+.qbox p{font-size:clamp(18px,2.2vw,26px); line-height:1.45; font-weight:300; color:#fff}
+.qbox p em{font-style:normal; font-weight:700; color:var(--blue)}
+
+/* stat row */
+.stats{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:rgba(255,255,255,.1); margin-top:28px}
+.stat{background:var(--black); padding:24px 16px; text-align:center}
+.stat-v{font-size:clamp(24px,3vw,36px); font-weight:900; color:var(--blue); line-height:1; letter-spacing:-1.2px; margin-bottom:9px}
+.stat-l{font-size:12px; line-height:1.45; color:rgba(255,255,255,.5)}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+/* tags */
+.tag{display:inline-block; font-size:9px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; padding:4px 10px; border-radius:2px; margin-bottom:14px}
+.tag.vision{background:rgba(216,11,140,.14); color:var(--pink); border:1px solid rgba(216,11,140,.4)}
+.tag.strategy{background:rgba(245,130,33,.14); color:var(--orange); border:1px solid rgba(245,130,33,.4)}
+.tag.committed{background:rgba(141,198,63,.16); color:var(--green); border:1px solid rgba(141,198,63,.45)}
+
+/* QA */
+.qa{margin-top:24px}
+.qa-item{padding:18px 0; border-bottom:1px solid rgba(255,255,255,.1)}
+.qa-item:last-child{border-bottom:none}
+.qa-q{font-size:16px; font-weight:700; color:var(--orange); margin-bottom:9px; line-height:1.35}
+.qa-a{font-size:14.5px; line-height:1.65; color:rgba(255,255,255,.68)}
+
+/* cover */
+.cover-badge{display:inline-block; background:var(--blue); color:#fff; font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; padding:7px 14px; margin-bottom:26px}
+.cover-meta{margin-top:34px; padding-top:26px; border-top:1px solid rgba(255,255,255,.14); display:grid; grid-template-columns:repeat(3,1fr); gap:24px; max-width:820px}
+.cm-l{font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:rgba(255,255,255,.35); margin-bottom:8px}
+.cm-d{font-size:14px; line-height:1.55; color:rgba(255,255,255,.7)}
+@media(max-width:700px){.cover-meta{grid-template-columns:1fr}}
+
+/* nav zones + footer hint */
+.zone{position:fixed; top:58px; bottom:0; width:15%; z-index:40; cursor:pointer}
+.zone.l{left:0} .zone.r{right:0}
+.hint{
+  position:fixed; bottom:0; left:0; right:0; z-index:50; height:44px;
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  background:linear-gradient(to top,rgba(26,34,46,.95),transparent);
+  font-size:11px; letter-spacing:1.2px; color:rgba(255,255,255,.3); pointer-events:none;
+}
+
+/* contents overlay */
+.toc{position:fixed; inset:0; z-index:80; background:rgba(26,34,46,.985); display:none; overflow-y:auto; padding:76px 40px 40px}
+.toc.open{display:block}
+.toc-grid{max-width:900px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(255,255,255,.1)}
+.toc-item{background:var(--black); padding:16px 20px; cursor:pointer; display:flex; gap:14px; align-items:baseline}
+.toc-item:hover{background:rgba(0,174,239,.1)}
+.toc-n{font-size:11px; font-weight:800; color:var(--blue); min-width:22px}
+.toc-t{font-size:14px; font-weight:600; color:rgba(255,255,255,.8)}
+.toc-close{position:fixed; top:14px; right:24px; z-index:81}
+@media(max-width:700px){.toc-grid{grid-template-columns:1fr}}
+
+/* ── PRINT ───────────────────────────────────────────── */
+@media print{
+  @page{size:A4 landscape; margin:12mm}
+  html,body{height:auto; overflow:visible; background:#fff; color:#1a222e}
+  .bar,.progress,.zone,.hint,.toc,.toc-close{display:none !important}
+  .deck{position:static; inset:auto; overflow:visible}
+  .card{
+    display:flex !important; position:static; inset:auto;
+    page-break-after:always; break-after:page;
+    min-height:170mm; padding:0 0 10mm; animation:none;
+  }
+  .card:last-child{page-break-after:auto}
+  .card-inner{max-width:none}
+  h1{font-size:30pt; color:#1a222e} h2{font-size:22pt; color:#1a222e}
+  .sub{color:#3d4756} .sub strong{color:#1a222e}
+  .cell{background:#fff; border:1px solid #d4dce1}
+  .grid2,.grid3,.grid4,.stats{background:#fff; gap:6px}
+  .stat{background:#fff; border:1px solid #d4dce1}
+  .cell-t,.nt,.sd-quote{color:#1a222e}
+  .cell-d,.nd,.stat-l,.qa-a,.sd-note{color:#4a5666}
+  .sd-box{background:#f7f8f9}
+  .qbox{background:#f1f2f3}
+  .qbox p{color:#1a222e; font-size:16pt}
+  .cover-meta{border-top-color:#d4dce1}
+  .cm-d{color:#3d4756} .cm-l{color:#8a95a3}
+  .nrow{border-bottom-color:#e3e8eb}
+  .qa-item{border-bottom-color:#e3e8eb}
+  .toc{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-l">
+    <img src="data:image/webp;base64,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" alt="EVS">
+    <span class="bar-div"></span>
+    <span class="bar-title">Vision 2035 &middot; IBC Key Takeaways</span>
+  </div>
+  <div class="bar-r">
+    <span class="counter" id="counter">1 / 16</span>
+    <button class="ibtn" id="tocBtn" title="Contents">&#9776;</button>
+    <button class="ibtn" id="prev" title="Previous">&#8249;</button>
+    <button class="ibtn" id="next" title="Next">&#8250;</button>
+  </div>
+</div>
+<div class="progress"><div class="progress-fill" id="pf"></div></div>
+
+<div class="zone l" id="zl"></div>
+<div class="zone r" id="zr"></div>
+
+<div class="deck" id="deck">
+
+<!-- 1 COVER -->
+<section class="card active" data-title="Cover and how to use this">
+  <div class="card-inner">
+    <span class="cover-badge">Internal &middot; IBC</span>
+    <h1>Vision 2035<br>Key Takeaways</h1>
+    <p class="sub">
+      What EVS believes about the next decade of live production, condensed to what you need
+      in a booth conversation or on a panel. <strong>Sixteen cards, about ten minutes end to
+      end.</strong> If you have sixty seconds, go straight to the last one.
+    </p>
+    <div class="cover-meta">
+      <div>
+        <div class="cm-l">Who this is for</div>
+        <div class="cm-d">Leadership Team, sales in customer conversations, and anyone speaking on an IBC panel.</div>
+      </div>
+      <div>
+        <div class="cm-l">How to use it</div>
+        <div class="cm-d">Each card carries one message, an approved form of words, and the claim to avoid. Swipe, use arrow keys, or print it.</div>
+      </div>
+      <div>
+        <div class="cm-l">The rule</div>
+        <div class="cm-d">Direction is fair game. Dates, codenames and customer names are not. Card 14 explains why.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 THE ANSWER -->
+<section class="card" data-title="Why EVS exists in 2035">
+  <div class="card-inner">
+    <span class="kicker">If you only remember one thing</span>
+    <h2>Why EVS exists in 2035</h2>
+    <div class="qbox">
+      <p>To enable <em>every organisation</em> to create and monetise live experiences <em>at any scale</em>.</p>
+    </div>
+    <p class="sub" style="margin-top:26px">
+      That is deliberately bigger than "we make replay servers" and deliberately bigger than
+      "we provide software-defined infrastructure". It is the sentence everything else on these
+      cards hangs from. If a conversation is going badly, come back to it.
+    </p>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"Our ambition is that anyone producing live content can reach the standard that only the biggest events could afford before."</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Leading with infrastructure, architecture or the word "platform" as an opener.</div>
+        <div class="sd-note">Those are how we deliver it. They are not why anyone should care.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 THE ARC -->
+<section class="card" data-title="The three-era arc">
+  <div class="card-inner">
+    <span class="kicker">The story arc</span>
+    <h2>Hardware, then software<br>and AI, then platform</h2>
+    <p class="sub">Three eras. Each builds on the last. Nothing is abandoned along the way, which is the part customers most need to hear.</p>
+    <div class="grid3">
+      <div class="cell">
+        <div class="cell-t" style="color:rgba(255,255,255,.55)">Where we came from</div>
+        <div class="cell-d" style="margin-top:8px"><strong style="color:#fff">Hardware.</strong> Purpose-built systems that did not fail, on the biggest events in the world. This is where the trust was earned.</div>
+      </div>
+      <div class="cell">
+        <div class="cell-t" style="color:var(--blue)">Where we are now</div>
+        <div class="cell-d" style="margin-top:8px"><strong style="color:#fff">Software and AI.</strong> Capability delivered as software that runs where it makes sense, with AI embedded where it measurably helps.</div>
+      </div>
+      <div class="cell">
+        <div class="cell-t" style="color:rgba(255,255,255,.55)">Where this goes</div>
+        <div class="cell-d" style="margin-top:8px"><strong style="color:#fff">Platform.</strong> The orchestration layer across a multi-vendor ecosystem, answerable for the whole production rather than one box in it.</div>
+      </div>
+    </div>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"The reliability that made us a hardware company is the thing we are carrying into the software era, not trading away for it."</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">"We are moving away from hardware."</div>
+        <div class="sd-note">It reads as abandonment to an installed base that just bought it, and it is not what we mean. See card 10.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 WHY NOW -->
+<section class="card" data-title="Why this matters now">
+  <div class="card-inner">
+    <span class="kicker">Start here in a customer conversation</span>
+    <h2>Four pressures, and all<br>four get worse</h2>
+    <p class="sub">Open on their problem, not our roadmap. Every one of these is already true for the person you are talking to.</p>
+    <div class="grid4">
+      <div class="cell"><div class="cell-n">01</div><div class="cell-t">More content, every year</div><div class="cell-d">The appetite has no ceiling and the schedule has no slack.</div></div>
+      <div class="cell"><div class="cell-n">02</div><div class="cell-t">Same team, or smaller</div><div class="cell-d">Flat budgets, rising rights costs, specialist roles harder to recruit.</div></div>
+      <div class="cell"><div class="cell-n">03</div><div class="cell-t">More formats, none optional</div><div class="cell-d">Broadcast, streaming, vertical, betting, clubs, archive. All table stakes.</div></div>
+      <div class="cell"><div class="cell-n">04</div><div class="cell-t">Complexity outgrows budget</div><div class="cell-d">Every new capability adds another system to integrate and maintain.</div></div>
+    </div>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"Make more, for more people, in more places, without more people. Everything we are building answers that one sentence."</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Opening with EVS, the portfolio, or a product name.</div>
+        <div class="sd-note">If they have not agreed on the problem, nothing you say about the solution lands.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 P1 -->
+<section class="card" data-title="Prediction 1: every production is AI-assisted">
+  <div class="card-inner">
+    <span class="kicker">Prediction 01</span>
+    <h2>Every production becomes<br>AI-assisted. Not optionally.</h2>
+    <p class="sub">
+      The question stops being whether you use AI and becomes which parts of the workflow still
+      need a human. The honest answer is: the parts that require taste. Every operator works
+      alongside something that watches the whole event and never tires in the eighty-eighth minute.
+    </p>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"AI will not replace the producer. It removes the distance between what a producer imagines and what is possible to deliver live."</div>
+        <div class="sd-note">Proof you can quote: more than 80,000 highlight clips generated automatically at Paris 2024.</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Implying AI removes operators, or that any specific AI feature is imminent.</div>
+        <div class="sd-note">Operator anxiety is real and it is the fastest way to lose a room.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 P2 -->
+<section class="card" data-title="Prediction 2: create once, publish everywhere">
+  <div class="card-inner">
+    <span class="kicker">Prediction 02</span>
+    <h2>Content is created once<br>and published everywhere</h2>
+    <p class="sub">
+      Capturing a moment then copying, transcoding and re-versioning it for each destination
+      becomes as dated as tape. One capture serves broadcast, streaming, social, betting, clubs
+      and archive at once, with rights and brand rules travelling with the content rather than
+      being enforced by someone remembering them.
+    </p>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"Ingest once. Every application sees the same frame at the same instant. No duplication, no waiting for a copy to land."</div>
+        <div class="sd-note">This is shipping today, not a prediction. Safe to demonstrate.</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Claiming every format and destination is covered today.</div>
+        <div class="sd-note">The architecture is real; the breadth of destinations is still growing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 P3 -->
+<section class="card" data-title="Prediction 3: the tide turns towards capabilities">
+  <div class="card-inner">
+    <span class="kicker">Prediction 03</span>
+    <h2>The tide is turning from<br>boxes to capabilities</h2>
+    <p class="sub">
+      Handle this one carefully. Over the decade, production resources become something a
+      customer requests rather than something they own and amortise, and what they are buying
+      becomes the ability to produce. <strong>That is the direction, not today's offer.</strong>
+      Sell what the customer will be able to do, and be precise about what delivers it now.
+    </p>
+    <div class="grid2">
+      <div class="cell">
+        <div class="cell-t" style="color:var(--blue)">The direction</div>
+        <div class="cell-d" style="margin-top:8px">Customers buy capability rather than equipment. A tier-one final and a regional fixture draw on the same pool at different scales, and the difference is a decision rather than a procurement cycle.</div>
+      </div>
+      <div class="cell">
+        <div class="cell-t" style="color:var(--green)">Where we are today</div>
+        <div class="cell-d" style="margin-top:8px">Software-defined <strong style="color:#fff">with guaranteed performance, on our own CPU and GPU hardware.</strong> Our Zoom replay application is the example to reach for: genuinely software-defined, and deterministic because of the hardware underneath it.</div>
+      </div>
+    </div>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"You get the flexibility of software with the performance guarantee of hardware built for it. Those two things are usually a trade-off. They should not have to be."</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Telling customers they can stop buying hardware, or pointing them at off-the-shelf servers from HP, Dell or Intel as the answer today.</div>
+        <div class="sd-note">Also avoid commercial models, licence structures and pricing direction. Packaging is not settled; route those to the account team.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 P4 -->
+<section class="card" data-title="Prediction 4: output grows, headcount does not">
+  <div class="card-inner">
+    <span class="kicker">Prediction 04</span>
+    <h2>Output grows tenfold.<br>Headcount does not.</h2>
+    <p class="sub">
+      This is the arithmetic that forces everything else. If audiences want ten times the content
+      and the team stays the same size, automation stops being an efficiency project and becomes
+      the only way the work gets done. The organisations that win are the ones whose people spend
+      the highest proportion of the day on decisions only a human can make.
+    </p>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"The constraint is no longer what your equipment can do. It is how many hours of human judgement you have available."</div>
+        <div class="sd-note">Proof you can quote: over 11,000 hours of live production across 4,857 feeds at Paris 2024, in build windows no longer than the Games before.</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Framing this as headcount reduction.</div>
+        <div class="sd-note">Customers hear redundancies. The message is more output from the same team, not the same output from fewer.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 P5 -->
+<section class="card" data-title="Prediction 5: freedom through orchestration">
+  <div class="card-inner">
+    <span class="kicker">Prediction 05</span>
+    <h2>Freedom through<br>orchestration</h2>
+    <p class="sub">
+      Customers should not have to depend on a single vendor, or bet their operation on one
+      technology roadmap. They need the freedom to select the best solution for each part of
+      their workflow, while ensuring that everything works together as one coherent system.
+    </p>
+    <p class="sub">
+      The real value therefore lies in the orchestration layer: the layer that removes the
+      complexity of a multi-vendor environment and gives customers the
+      <strong>flexibility, interoperability and control to evolve their operations over time.</strong>
+    </p>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"You should be free to choose the best tool for each part of your workflow, and still run it as one system. That freedom is what orchestration buys you."</div>
+        <div class="sd-note">Proof you can quote: orchestration and control across more than 350 device protocols, any vendor, live today.</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Making this about EVS winning the layer, or naming which partners will be in the ecosystem.</div>
+        <div class="sd-note">The benefit belongs to the customer. Openness is the message, and a named list makes it sound like a closed club.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 BALANCED COMPUTE -->
+<section class="card" data-title="Our contrarian view: balanced compute">
+  <div class="card-inner">
+    <span class="kicker pink">Where we disagree with the industry</span>
+    <h2>"Everything becomes<br>software" is half the story</h2>
+    <p class="sub">
+      This is your best panel material, because almost nobody else will say it. Industry
+      perception is moving towards a future that is entirely standard, general-purpose compute.
+      We do not think that is what happens. The market for purpose-built hardware will decline,
+      which is exactly why we are building a software business, but declining is not disappearing.
+    </p>
+    <div class="grid3">
+      <div class="cell"><div class="cell-n">~5&times;</div><div class="cell-t">The power gap</div><div class="cell-d">A purpose-built 1RU multiviewer at 64 in and 8 out draws around 250 watts. A general-purpose equivalent at the same density draws roughly 1,200 to 1,400.</div></div>
+      <div class="cell"><div class="cell-n">7&ndash;10</div><div class="cell-t">Years per build</div><div class="cell-d">Facilities are specified once and run for a decade. With electricity prices rising, a kilowatt of difference per device is a cost argument before it is a green one.</div></div>
+      <div class="cell"><div class="cell-n">UHD</div><div class="cell-t">Breaks the assumption</div><div class="cell-d">General-purpose processing stops scaling gracefully at UHD under complex compression. The gap widens with resolution, it does not close.</div></div>
+    </div>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"The question was never hardware or software. It is which workloads deserve purpose-built hardware, and that list is shorter in 2035 than today, but it is not empty."</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Avoid</div>
+        <div class="sd-quote">Sounding defensive, or naming the competing product behind the power comparison.</div>
+        <div class="sd-note">Cite our own figure and let them draw the conclusion. Do not quote lifecycle cost in euros; the assumptions are not published.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 EMOTION -->
+<section class="card" data-title="What audiences actually experience">
+  <div class="card-inner">
+    <span class="kicker">Return on emotion</span>
+    <h2>What all of this<br>is actually for</h2>
+    <p class="sub">None of it matters because it is clever. It matters because of what reaches the person watching. Use these when a conversation has drifted too far into technology.</p>
+    <div class="nlist">
+      <div class="nrow"><div class="nnum">01</div><div><div class="nt">Every fan gets a feed built for them</div><div class="nd">One player for ninety minutes, in your language, at your level of expertise.</div></div></div>
+      <div class="nrow"><div class="nnum">02</div><div><div class="nt">Every athlete becomes a storyteller</div><div class="nd">Players and clubs publish their own version of the same event, without their own crew.</div></div></div>
+      <div class="nrow"><div class="nnum">03</div><div><div class="nt">Every moment becomes findable</div><div class="nd">Archive stops being a cost centre and becomes a live asset, searchable by describing it.</div></div></div>
+      <div class="nrow"><div class="nnum">04</div><div><div class="nt">Every sport gets Olympic treatment</div><div class="nd">Second-tier leagues, women's competitions and youth sport become viable to produce properly.</div></div></div>
+      <div class="nrow"><div class="nnum">05</div><div><div class="nt">Every screen gets content made for it</div><div class="nd">Not a widescreen broadcast squeezed onto a phone, but coverage framed for the moment it is watched in.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 BY AUDIENCE -->
+<section class="card" data-title="What it means per customer type">
+  <div class="card-inner">
+    <span class="kicker">Know who is in front of you</span>
+    <h2>The same decade,<br>three different businesses</h2>
+    <div class="grid3">
+      <div class="cell">
+        <div class="cell-t" style="color:var(--blue)">Broadcasters</div>
+        <div class="cell-d" style="margin-top:10px"><strong style="color:#fff">Cost per content hour stops rising.</strong><br><br>More output per crew hour without more crew. One capture feeding every platform they are contracted to serve. New capability as a software update rather than a refit. An exit from the refresh cycle as the organising principle of the capital plan.</div>
+      </div>
+      <div class="cell">
+        <div class="cell-t" style="color:var(--green)">Leagues and rights holders</div>
+        <div class="cell-d" style="margin-top:10px"><strong style="color:#fff">The property gets more valuable.</strong><br><br>More monetisable content from fixtures they already own. Consistent standards across every venue and territory. Engagement between events, not only during them. Lower tiers become economic to produce. Archive that earns rather than costs.</div>
+      </div>
+      <div class="cell">
+        <div class="cell-t" style="color:var(--orange)">Digital-first creators</div>
+        <div class="cell-d" style="margin-top:10px"><strong style="color:#fff">Broadcast quality without the baggage.</strong><br><br>Professional live production without inheriting forty years of legacy. Open interfaces that fit the stack they have already built. Cost that scales with audience. Spin up for a season and stop paying. Reliability proven at the largest scale, available at theirs.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 NUMBERS -->
+<section class="card" data-title="Numbers you can quote">
+  <div class="card-inner">
+    <span class="kicker green">Safe to say out loud</span>
+    <h2>The numbers you<br>can quote</h2>
+    <p class="sub">All of these describe things that have already happened. Nothing here is forward-looking, which is what makes them usable in any room.</p>
+    <div class="qbox" style="margin-top:22px;padding:22px 26px">
+      <p><em>16 billion</em> impressions, from content Fox Sports published with VIA MAP during the 2026 World Cup.</p>
+      <div class="sd-note" style="margin-top:12px;color:var(--green)">If you quote one number, quote this one. Everything else here measures how much we produced. This measures how many people it reached, which is the only number a rights holder or a broadcaster is actually judged on.</div>
+    </div>
+    <div class="stats" style="margin-top:16px">
+      <div class="stat"><div class="stat-v">11,000+</div><div class="stat-l">Hours of live production, Paris 2024</div></div>
+      <div class="stat"><div class="stat-v">4,857</div><div class="stat-l">Camera feeds, Paris 2024</div></div>
+      <div class="stat"><div class="stat-v">80,000+</div><div class="stat-l">AI-generated highlight clips, Paris 2024</div></div>
+      <div class="stat"><div class="stat-v">21+</div><div class="stat-l">Sports with AI athlete tracking</div></div>
+      <div class="stat"><div class="stat-v">7,000+</div><div class="stat-l">Operators on EVS software daily</div></div>
+    </div>
+    <div class="grid2" style="margin-top:22px">
+      <div class="cell"><div class="cell-t">350+ protocols</div><div class="cell-d">Device control and orchestration across any vendor's equipment, in production today.</div></div>
+      <div class="cell"><div class="cell-t">A Winter Games on standard servers</div><div class="cell-d">Software-defined production at full Games scale, on standard server infrastructure, with no second take available.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 LANGUAGE RULES -->
+<section class="card" data-title="Language rules: vision, strategy, committed">
+  <div class="card-inner">
+    <span class="kicker orange">Read this before you go on stage</span>
+    <h2>Vision, strategy and<br>commitment are different things</h2>
+    <p class="sub">
+      Everything on these cards is a point of view about the industry. Almost none of it is a
+      product promise. Keeping the three apart is what lets us be ambitious in public without
+      creating expectations we have not funded.
+    </p>
+    <div class="grid3">
+      <div class="cell"><span class="tag vision">Vision</span><div class="cell-t">A direction we believe in</div><div class="cell-d">Where the industry goes and where EVS should play. Say it freely. Never attach a date or a deliverable to it.</div></div>
+      <div class="cell"><span class="tag strategy">Strategy</span><div class="cell-t">A choice we have made</div><div class="cell-d">An agreed direction with investment behind it, but scope and timing still open. Discuss as intent, never as commitment.</div></div>
+      <div class="cell"><span class="tag committed">Committed</span><div class="cell-t">On the roadmap, with a date</div><div class="cell-d">Funded, scoped, scheduled. The only category a customer can plan around, and only via the account team.</div></div>
+    </div>
+    <div class="sd">
+      <div class="sd-box say">
+        <div class="sd-label">Say</div>
+        <div class="sd-quote">"That is where we believe the industry is going and where we intend to lead. What we have committed to deliver is a separate conversation, and I can set that up."</div>
+        <div class="sd-note">This sentence gets you out of almost any roadmap question without losing credibility.</div>
+      </div>
+      <div class="sd-box dont">
+        <div class="sd-label">Never at IBC</div>
+        <div class="sd-quote">Internal project codenames. Launch windows or release timing. Customers named as early adopters of anything unreleased. Anything commercial or financial.</div>
+        <div class="sd-note">Published customer results are different, and card 13 has the ones you can use. The rule is about unreleased work: it ends up screenshotted. Direction is fair game; specifics are not yours to give.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 HARD QUESTIONS -->
+<section class="card" data-title="Hard questions and how to answer">
+  <div class="card-inner">
+    <span class="kicker orange">You will get asked these</span>
+    <h2>The hard questions</h2>
+    <div class="qa">
+      <div class="qa-item">
+        <div class="qa-q">"Isn't EVS late to software?"</div>
+        <div class="qa-a">We were deliberate rather than late. When your equipment runs a World Cup final, moving before the software can carry that reliability is not courage, it is negligence. What we have now is a software stack proven at Games scale rather than a demo. And if the question is really about where our engineering effort goes: <strong style="color:#fff">85% of our developers are software developers. Only around 15% work on dedicated hardware.</strong></div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-q">"Everyone at this show claims to have AI."</div>
+        <div class="qa-a">Agreed, so ask what it is trained on. Most highlight tools work from a single programme feed. Our customers record every camera, and the unused angles are where the storytelling actually is. That is a data advantage, not a model advantage, and it is much harder to copy.</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-q">"Are you abandoning hardware?"</div>
+        <div class="qa-a">No. We are moving into software everything that should be software, and continuing to build purpose-built hardware for the workloads where power, density and timing still decide the outcome. Card 10 has the numbers if they want them.</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-q">"Can a hardware company really become a platform company?"</div>
+        <div class="qa-a">It is a fair challenge. The honest answer is that the orchestration and control layer is already the fastest-growing part of our portfolio, and it already controls other vendors' equipment. We are not starting from an idea.</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-q">"Isn't cloud cheaper?"</div>
+        <div class="qa-a">Sometimes, and we support it where it is. For elasticity and reach it is compelling. For sustained, latency-critical, high-density work the arithmetic often goes the other way once you count power and egress across a ten-year build. Hybrid is the honest answer.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 SIXTY SECONDS -->
+<section class="card" data-title="The sixty-second version">
+  <div class="card-inner">
+    <span class="kicker">If you have one minute</span>
+    <h2>The sixty-second version</h2>
+    <p class="sub">
+      Our customers are being asked to make more content, for more platforms, with the same team.
+      That pressure only increases. So we think five things become true by 2035:
+      <strong>every production is AI-assisted; content is created once and published everywhere;
+      the industry moves from buying boxes to buying capabilities; output grows tenfold while
+      headcount does not; and customers get their freedom back through orchestration rather than
+      by betting on one vendor's roadmap.</strong>
+    </p>
+    <p class="sub">
+      EVS is moving from hardware, through software and AI, towards being the orchestration layer
+      that makes a multi-vendor world behave like one system. We are keeping purpose-built hardware
+      where power, density and timing still decide the outcome, because "everything becomes
+      software" is half the story. And the point of all of it is not the technology. It is that
+      every fan gets a feed built for them, and every sport can be produced like the Olympics.
+    </p>
+    <div class="qbox">
+      <p>We exist to enable <em>every organisation</em> to create and monetise live experiences <em>at any scale</em>.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="hint" id="hint">Swipe, tap the edges, or use &#8592; &#8594;</div>
+
+<div class="toc" id="toc">
+  <button class="ibtn toc-close" id="tocClose">&times;</button>
+  <div class="toc-grid" id="tocGrid"></div>
+</div>
+
+<script>
+(function(){
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var i = 0;
+  var counter = document.getElementById('counter');
+  var pf = document.getElementById('pf');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var toc = document.getElementById('toc');
+  var tocGrid = document.getElementById('tocGrid');
+  var hint = document.getElementById('hint');
+
+  cards.forEach(function(c, n){
+    var d = document.createElement('div');
+    d.className = 'toc-item';
+    d.innerHTML = '<span class="toc-n">' + String(n+1).padStart(2,'0') + '</span><span class="toc-t">' + (c.dataset.title || '') + '</span>';
+    d.addEventListener('click', function(){ go(n); toc.classList.remove('open'); });
+    tocGrid.appendChild(d);
+  });
+
+  function go(n){
+    if (n < 0 || n >= cards.length) return;
+    cards[i].classList.remove('active');
+    i = n;
+    cards[i].classList.add('active');
+    cards[i].scrollTop = 0;
+    counter.textContent = (i+1) + ' / ' + cards.length;
+    pf.style.width = (((i+1)/cards.length)*100) + '%';
+    prev.disabled = (i === 0);
+    next.disabled = (i === cards.length - 1);
+    if (i > 0 && hint) { hint.style.display = 'none'; }
+  }
+
+  prev.addEventListener('click', function(){ go(i-1); });
+  next.addEventListener('click', function(){ go(i+1); });
+  document.getElementById('zl').addEventListener('click', function(){ go(i-1); });
+  document.getElementById('zr').addEventListener('click', function(){ go(i+1); });
+  document.getElementById('tocBtn').addEventListener('click', function(){ toc.classList.toggle('open'); });
+  document.getElementById('tocClose').addEventListener('click', function(){ toc.classList.remove('open'); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(i+1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')  { e.preventDefault(); go(i-1); }
+    if (e.key === 'Home') { go(0); }
+    if (e.key === 'End')  { go(cards.length-1); }
+    if (e.key === 'Escape') { toc.classList.remove('open'); }
+  });
+
+  var x0 = null, y0 = null;
+  document.addEventListener('touchstart', function(e){
+    x0 = e.changedTouches[0].clientX; y0 = e.changedTouches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    var dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { go(dx < 0 ? i+1 : i-1); }
+    x0 = null; y0 = null;
+  }, {passive:true});
+
+  go(0);
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
