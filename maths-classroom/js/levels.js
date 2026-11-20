@@ -1,6 +1,6 @@
 // Question generators and level definitions.
-// Every round is ROUND_SIZE questions. A question is either:
-//   { kind: 'fact', op: '×' | '÷', a, b, answer }      — answered in one box
+// Every round is ROUND_SIZE questions (ages 5–7: EARLY_SIZE). A question is either:
+//   { kind: 'fact', op: '×' | '÷' | '+' | '−', a, b, answer, dots? } — answered in one box
 //   { kind: 'add' | 'sub' | 'smul' | 'bus', a, b, rem } — answered in a column grid
 
 export const ROUND_SIZE = 20;
@@ -134,6 +134,22 @@ function busQ(nD, remainders) {
   return { kind: 'bus', a: 84, b: 4, rem: false };
 }
 
+// ---------- Early number (ages 5–7): adding and taking away up to 20 ----------
+// Shorter rounds, answered in one box like times-table facts. Early levels show dots to count.
+const EARLY_SIZE = 10;
+const EARLY_PASS = 8;
+function earlyRound(op, test, dots = false) {
+  const pool = [];
+  for (let a = 0; a <= 20; a++) for (let b = 0; b <= 20; b++) if (test(a, b)) pool.push([a, b]);
+  const mixed = shuffle(pool);
+  const qs = Array.from({ length: EARLY_SIZE }, (_, i) => {
+    const [a, b] = mixed[i % mixed.length];
+    return { kind: 'fact', op, a, b, answer: op === '+' ? a + b : a - b, dots };
+  });
+  return spreadOut(qs, (q) => `${q.a}${q.op}${q.b}`);
+}
+const teen = (n) => n >= 11 && n <= 19;
+
 const many = (fn) => () => Array.from({ length: ROUND_SIZE }, fn);
 
 export const SUBJECTS = {
@@ -201,6 +217,43 @@ export const SUBJECTS = {
     ],
   },
 };
+
+// Ages 5–7 subjects. They have their own level counters, so switching age group never loses progress.
+Object.assign(SUBJECTS, {
+  yadd: {
+    name: 'Adding', symbol: '+', colour: 'var(--add)', size: EARLY_SIZE, pass: EARLY_PASS,
+    levels: [
+      { label: 'Adding up to 5, with dots', make: () => earlyRound('+', (a, b) => a >= 1 && b >= 1 && a + b <= 5, true) },
+      { label: 'Adding up to 10, with dots', make: () => earlyRound('+', (a, b) => a >= 1 && b >= 1 && a + b >= 5 && a + b <= 10, true) },
+      { label: 'Adding up to 10', make: () => earlyRound('+', (a, b) => a >= 1 && a + b <= 10) },
+      { label: 'Adding 10', make: () => earlyRound('+', (a, b) => (a === 10 && b >= 1 && b <= 10) || (b === 10 && a >= 1 && a <= 9)) },
+      { label: 'Adding to teen numbers', make: () => earlyRound('+', (a, b) => (teen(a) && b >= 1 && (a % 10) + b <= 9) || (teen(b) && a >= 1 && (b % 10) + a <= 9)) },
+      { label: 'Adding past 10', make: () => earlyRound('+', (a, b) => a >= 2 && a <= 9 && b >= 2 && b <= 9 && a + b > 10) },
+      { label: 'Adding up to 20', make: () => earlyRound('+', (a, b) => a >= 1 && b >= 1 && a + b >= 6 && a + b <= 20) },
+    ],
+  },
+  ysub: {
+    name: 'Taking away', symbol: '−', colour: 'var(--sub)', size: EARLY_SIZE, pass: EARLY_PASS,
+    levels: [
+      { label: 'Taking away within 5, with dots', make: () => earlyRound('−', (a, b) => a >= 2 && a <= 5 && b >= 1 && b < a, true) },
+      { label: 'Taking away within 10, with dots', make: () => earlyRound('−', (a, b) => a >= 6 && a <= 10 && b >= 1 && b < a, true) },
+      { label: 'Taking away within 10', make: () => earlyRound('−', (a, b) => a >= 2 && a <= 10 && b >= 1 && b <= a) },
+      { label: 'Taking away 10', make: () => earlyRound('−', (a, b) => teen(a) && (b === 10 || b === a - 10)) },
+      { label: 'Taking away from teen numbers', make: () => earlyRound('−', (a, b) => teen(a) && b >= 1 && b <= a % 10) },
+      { label: 'Taking away past 10', make: () => earlyRound('−', (a, b) => a >= 11 && a <= 18 && b >= 2 && b <= 9 && b > a % 10) },
+      { label: 'Taking away within 20', make: () => earlyRound('−', (a, b) => a >= 6 && a <= 20 && b >= 1 && b < a) },
+    ],
+  },
+});
+
+// Which subjects each age group sees.
+export const BANDS = {
+  young: { label: 'Ages 5–7', ask: '5, 6 or 7', subjects: ['yadd', 'ysub'] },
+  older: { label: 'Ages 8–10', ask: '8, 9 or 10', subjects: ['add', 'sub', 'mul', 'div'] },
+};
+export const bandOf = (p) => (p.band === 'young' ? 'young' : 'older');
+export const subjectsFor = (p) => BANDS[bandOf(p)].subjects.map((k) => [k, SUBJECTS[k]]);
+export const passMarkOf = (subject) => SUBJECTS[subject].pass || PASS_MARK;
 
 export function makeRound(subject, level) {
   const lv = SUBJECTS[subject].levels[Math.min(level, SUBJECTS[subject].levels.length) - 1];

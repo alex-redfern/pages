@@ -170,6 +170,24 @@ export function hintFor(q, layout, activeId) {
     return `How many ${q.b}s go into ${running}${carried}? Write that above, and carry anything left over to the next digit.`;
   }
 
+  // ages 5–7: adding and taking away
+  if (q.op === '+') {
+    if (q.dots) return 'Count all the dots, starting from 1.';
+    const [big, small] = q.a >= q.b ? [q.a, q.b] : [q.b, q.a];
+    if (big < 10 && big + small > 10) return `Make 10 first! ${big} + ${10 - big} = 10. Then add the ${small - (10 - big)} that's left.`;
+    if (small === 0) return `Adding 0 doesn't change anything!`;
+    const seq = Array.from({ length: Math.min(small, 3) }, (_, k) => big + k + 1);
+    return `Start at ${big} and count on ${small}: ${seq.join(', ')}${small > 3 ? '…' : ''}`;
+  }
+  if (q.op === '−') {
+    if (q.dots) return `Count the dots that aren't crossed out.`;
+    const ones = q.a % 10;
+    if (q.a > 10 && q.a < 20 && q.b < 10 && q.b > ones) return `Take away ${ones} to get to 10 first. Then take away ${q.b - ones} more.`;
+    if (q.b === q.a) return 'Taking everything away leaves nothing!';
+    const seq = Array.from({ length: Math.min(q.b, 3) }, (_, k) => q.a - k - 1);
+    return `Start at ${q.a} and count back ${q.b}: ${seq.join(', ')}${q.b > 3 ? '…' : ''}`;
+  }
+
   // times-table facts
   if (q.op === '×') {
     const [count, step] = q.a <= q.b ? [q.a, q.b] : [q.b, q.a];

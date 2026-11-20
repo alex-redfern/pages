@@ -1,4 +1,4 @@
-import { SUBJECTS, makeRound, ROUND_SIZE, PASS_MARK } from './levels.js';
+import { SUBJECTS, makeRound, BANDS, bandOf, subjectsFor, passMarkOf } from './levels.js';
 import { buildLayout, checkLayout, hintFor, placeWord, answerOf } from './column.js';
 import { ANIMALS, animalSVG } from './animals.js';
 import { ITEMS, ITEM_BY_ID, itemSVG, classroomSVG, rewardChoices } from './classroom.js';
@@ -10,7 +10,7 @@ let actions = {};
 let player = null;
 let R = null; // the round in progress
 let timerHandle = null;
-const session = { rounds: 0 };
+const session = { rounds: 0, questions: 0 };
 
 const NAME_IDEAS = {
   wolf: ['Luna', 'Howl', 'Storm', 'Shadow'],
@@ -32,6 +32,27 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const fmtNum = (n) => Number(n).toLocaleString('en-GB');
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+// ---------- Light / dark ----------
+// The choice is kept on this device under its own key, separate from progress.
+const THEME_KEY = 'critter-classroom-theme';
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+const isDark = () => (document.documentElement.dataset.theme || (darkQuery.matches ? 'dark' : 'light')) === 'dark';
+function syncThemeColour() {
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark() ? '#1A1C29' : '#FFF8EC');
+}
+function toggleTheme() {
+  const next = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem(THEME_KEY, next); } catch { /* ignore */ }
+  syncThemeColour();
+  sounds.tap();
+}
+const themeButton = () => isDark()
+  ? `<button class="btn toggle" data-act="theme" aria-label="Switch to light mode">☀️<span class="lbl"> Light</span></button>`
+  : `<button class="btn toggle" data-act="theme" aria-label="Switch to dark mode">🌙<span class="lbl"> Dark</span></button>`;
+syncThemeColour();
+darkQuery.addEventListener?.('change', syncThemeColour);
 
 function render(html, acts, cls = '') {
   stopTimer();
@@ -68,6 +89,7 @@ function showPlayers() {
   const list = store.players();
   render(`
     <div class="screen center">
+      <div class="corner">${themeButton()}</div>
       <h1 class="title">Critter <span>Classroom</span></h1>
       <p class="subtitle">Who's playing today?</p>
       <div class="player-grid">
@@ -86,6 +108,7 @@ function showPlayers() {
     </div>`, {
     choose: (el) => { player = store.getPlayer(el.dataset.id); store.setLastPlayer(player.id); setSound(player.settings.sound); showHome(); },
     new: () => showCreate(),
+    theme: () => { toggleTheme(); showPlayers(); },
   });
   holdToOpen(document.getElementById('grownups'), showParents);
 }
@@ -100,7 +123,7 @@ function holdToOpen(btn, fn) {
 }
 
 // ================= New player =================
-function showCreate(chosen = null) {
+function showCreate(chosen = null, band = null) {
   const backTo = store.players().length ? showPlayers : null;
   render(`
     <div class="screen">
@@ -115,8 +138,12 @@ function showCreate(chosen = null) {
             ${animalSVG(k)}<span>${a.name}</span>
           </button>`).join('')}
       </div>
+      <p class="step">2. How old are you?</p>
+      <div class="chips ages">
+        ${Object.entries(BANDS).map(([k, b]) => `<button class="chip age ${k === band ? 'chosen' : ''}" data-act="age" data-b="${k}">${b.ask}</button>`).join('')}
+      </div>
       <div class="name-step ${chosen ? '' : 'disabled'}">
-        <p class="step">2. Give your ${chosen ? ANIMALS[chosen].name.toLowerCase() : 'animal'} a name</p>
+        <p class="step">3. Give your ${chosen ? ANIMALS[chosen].name.toLowerCase() : 'animal'} a name</p>
         <div class="name-row">
           <input id="name" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Type a name…" ${chosen ? '' : 'disabled'}>
           <button class="btn big go" data-act="go" id="go" disabled>Let's go!</button>
@@ -125,12 +152,13 @@ function showCreate(chosen = null) {
       </div>
     </div>`, {
     back: () => backTo(),
-    animal: (el) => { sounds.tap(); const prev = document.getElementById('name')?.value || ''; showCreate(el.dataset.k); const inp = document.getElementById('name'); inp.value = prev; inp.dispatchEvent(new Event('input')); },
+    animal: (el) => { sounds.tap(); redraw(el.dataset.k, band); },
+    age: (el) => { sounds.tap(); redraw(chosen, el.dataset.b); },
     idea: (el) => { const inp = document.getElementById('name'); inp.value = el.dataset.n; inp.dispatchEvent(new Event('input')); },
     go: () => {
       const name = document.getElementById('name').value.trim();
-      if (!name || !chosen) return;
-      player = store.createPlayer(name, chosen);
+      if (!name || !chosen || !band) return;
+      player = store.createPlayer(name, chosen, band);
       store.requestPersistence();
       setSound(true);
       sounds.levelUp();
@@ -139,8 +167,17 @@ function showCreate(chosen = null) {
   });
   const inp = document.getElementById('name');
   const go = document.getElementById('go');
-  inp.addEventListener('input', () => { go.disabled = !inp.value.trim() || !chosen; });
+  inp.addEventListener('input', () => { go.disabled = !inp.value.trim() || !chosen || !band; });
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !go.disabled) { inp.blur(); actions.go(); } });
+}
+
+// Re-draw the new-player screen without losing the name typed so far.
+function redraw(chosen, band) {
+  const prev = document.getElementById('name')?.value || '';
+  showCreate(chosen, band);
+  const inp = document.getElementById('name');
+  inp.value = prev;
+  inp.dispatchEvent(new Event('input'));
 }
 
 // ================= Home =================
@@ -149,11 +186,12 @@ function showHome(greeting) {
   render(`
     <div class="screen">
       <div class="topbar">
-        <button class="btn ghost" data-act="switch">⇄ Change player</button>
+        <button class="btn ghost" data-act="switch" aria-label="Change player">⇄<span class="lbl"> Change player</span></button>
         <span></span>
         <div class="toggles">
-          <button class="btn toggle ${player.settings.timer ? 'on' : ''}" data-act="timer">⏱ Timer ${player.settings.timer ? 'on' : 'off'}</button>
-          <button class="btn toggle ${player.settings.sound ? 'on' : ''}" data-act="sound">${player.settings.sound ? '🔊 Sound on' : '🔈 Sound off'}</button>
+          <button class="btn toggle ${player.settings.timer ? 'on' : ''}" data-act="timer" aria-label="Timer ${player.settings.timer ? 'on' : 'off'}">⏱<span class="lbl"> Timer ${player.settings.timer ? 'on' : 'off'}</span></button>
+          <button class="btn toggle ${player.settings.sound ? 'on' : ''}" data-act="sound" aria-label="Sound ${player.settings.sound ? 'on' : 'off'}">${player.settings.sound ? '🔊<span class="lbl"> Sound on</span>' : '🔇<span class="lbl"> Sound off</span>'}</button>
+          ${themeButton()}
         </div>
       </div>
       <div class="hello">
@@ -163,8 +201,8 @@ function showHome(greeting) {
         </div>
       </div>
       <div class="subject-grid">
-        ${Object.entries(SUBJECTS).map(([k, s]) => {
-          const level = lv[k];
+        ${subjectsFor(player).map(([k, s]) => {
+          const level = lv[k] || 1;
           const max = s.levels.length;
           const shown = Math.min(level, max);
           return `
@@ -184,6 +222,7 @@ function showHome(greeting) {
     switch: () => showPlayers(),
     timer: () => { player.settings.timer = !player.settings.timer; store.save(); showHome(greeting); },
     sound: () => { player.settings.sound = !player.settings.sound; setSound(player.settings.sound); store.save(); sounds.tap(); showHome(greeting); },
+    theme: () => { toggleTheme(); showHome(greeting); },
     play: (el) => startRound(el.dataset.s),
     room: () => showClassroom(),
   });
@@ -192,8 +231,9 @@ function showHome(greeting) {
 // ================= A round =================
 function startRound(subject) {
   const s = SUBJECTS[subject];
-  const level = Math.min(player.levels[subject], s.levels.length);
-  R = { subject, level, questions: makeRound(subject, level), i: 0, results: [], start: Date.now() };
+  const level = Math.min(player.levels[subject] || 1, s.levels.length);
+  const questions = makeRound(subject, level);
+  R = { subject, level, questions, size: questions.length, i: 0, results: [], start: Date.now() };
   render(`
     <div class="round" style="--c:${s.colour}">
       <div class="topbar round-top">
@@ -260,13 +300,13 @@ function loadQuestion() {
   }
   R.maxTries = q.kind === 'fact' ? 2 : 3;
   const intro = {
-    fact: '',
+    fact: q.dots ? 'Count the dots to help you!' : '',
     add: 'Add each column, starting with the ones on the right.',
     sub: 'Subtract each column, starting with the ones. Tap a top digit to cross it out when you exchange.',
     smul: 'Multiply each digit, starting with the ones on the right.',
     bus: 'Bus stop! Work from left to right.',
   }[q.kind];
-  say(R.i === 0 || q.kind !== 'fact' ? intro || `Question ${R.i + 1} of ${ROUND_SIZE}. Take your time.` : '', 'calm');
+  say(R.i === 0 || q.kind !== 'fact' ? intro || `Question ${R.i + 1} of ${R.size}. Take your time.` : '', 'calm');
   paintProgress();
   paintQuestion();
 }
@@ -281,7 +321,7 @@ function say(msg, mood = 'calm') {
 
 function paintProgress() {
   const el = document.getElementById('progress');
-  el.innerHTML = Array.from({ length: ROUND_SIZE }, (_, i) => {
+  el.innerHTML = Array.from({ length: R.size }, (_, i) => {
     const r = R.results[i];
     const cls = r ? (r.ok ? 'ok' : 'seen') : i === R.i ? 'now' : '';
     return `<i class="${cls}"></i>`;
@@ -301,10 +341,10 @@ function paintQuestion() {
   const el = document.getElementById('question');
   if (q.kind === 'fact') {
     const v = R.values.f || '';
-    el.innerHTML = `<div class="fact">
+    el.innerHTML = `<div class="fact-wrap"><div class="fact">
       <span>${q.a} ${q.op} ${q.b} =</span>
       <button class="c in fact-box ${cellClasses('f')}" data-act="cell" data-id="f">${esc(v)}</button>
-    </div>`;
+    </div>${q.dots ? countersHTML(q) : ''}</div>`;
   } else {
     el.innerHTML = gridHTML(R.layout);
   }
@@ -314,11 +354,25 @@ function paintQuestion() {
     check.dataset.act = 'check';
     check.classList.remove('next');
   } else {
-    check.textContent = R.i === ROUND_SIZE - 1 ? 'Finish' : 'Next →';
+    check.textContent = R.i === R.size - 1 ? 'Finish' : 'Next →';
     check.dataset.act = 'next';
     check.classList.add('next');
   }
   document.getElementById('pad').classList.toggle('locked', R.phase !== 'answer');
+}
+
+// Dots to count for the earliest 5–7 levels. Taking away crosses out the dots being taken.
+function countersHTML(q) {
+  const group = (n, crossFrom = n, cls = '') => {
+    const dots = Array.from({ length: n }, (_, i) => `<i class="${i >= crossFrom ? 'x' : ''}"></i>`);
+    const fives = [];
+    for (let i = 0; i < dots.length; i += 5) fives.push(`<span class="five">${dots.slice(i, i + 5).join('')}</span>`);
+    return `<span class="grp ${cls}">${fives.join('')}</span>`;
+  };
+  const inner = q.op === '+'
+    ? `${group(q.a, q.a, 'ga')}<span class="plus">+</span>${group(q.b, q.b, 'gb')}`
+    : group(q.a, q.a - q.b, 'ga');
+  return `<div class="counters" aria-hidden="true">${inner}</div>`;
 }
 
 function gridHTML(layout) {
@@ -450,7 +504,7 @@ function bounceCoach() {
 
 function nextQuestion() {
   clearTimeout(R.autoNext);
-  if (R.i < ROUND_SIZE - 1) {
+  if (R.i < R.size - 1) {
     R.i++;
     loadQuestion();
   } else {
@@ -465,10 +519,11 @@ function finishRound() {
   const secs = Math.round((Date.now() - R.start) / 1000);
   const s = SUBJECTS[R.subject];
   const max = s.levels.length;
-  const before = player.levels[R.subject];
-  const passed = correct >= PASS_MARK;
+  const before = player.levels[R.subject] || 1;
+  const passMark = passMarkOf(R.subject);
+  const passed = correct >= passMark;
   if (passed && before <= max) player.levels[R.subject] = before + 1;
-  player.history.push({ date: new Date().toISOString(), subject: R.subject, level: R.level, correct, total: ROUND_SIZE, secs });
+  player.history.push({ date: new Date().toISOString(), subject: R.subject, level: R.level, correct, total: R.size, secs });
 
   let timeMsg = '';
   if (player.settings.timer) {
@@ -483,14 +538,15 @@ function finishRound() {
   }
   store.save();
   session.rounds++;
+  session.questions += R.size;
 
-  const stars = correct >= 18 ? 3 : correct >= 14 ? 2 : 1;
+  const stars = correct >= R.size * 0.9 ? 3 : correct >= R.size * 0.7 ? 2 : 1;
   let levelMsg;
   if (passed && before < max) levelMsg = `🎉 You've moved up to <strong>Level ${before + 1}: ${s.levels[before].label}</strong>!`;
   else if (passed) levelMsg = `🌟 You've mastered every ${s.name.toLowerCase()} level. Amazing!`;
-  else levelMsg = `You need ${PASS_MARK} right to move up. Let's practise Level ${R.level} a bit more. You're getting stronger every round!`;
+  else levelMsg = `You need ${passMark} right to move up. Let's practise Level ${R.level} a bit more. You're getting stronger every round!`;
   const choices = rewardChoices(player.items);
-  const breakMsg = session.rounds % 2 === 0 ? `<p class="break">You've done ${session.rounds * ROUND_SIZE} questions today. Maybe time for a break? Your classroom will be waiting.</p>` : '';
+  const breakMsg = session.rounds % 2 === 0 ? `<p class="break">You've done ${session.questions} questions today. Maybe time for a break? Your classroom will be waiting.</p>` : '';
 
   if (passed) sounds.levelUp(); else sounds.reward();
 
@@ -500,7 +556,7 @@ function finishRound() {
         ${animalSVG(player.animal, 'jump-loop')}
         <div>
           <h2>Round complete!</h2>
-          <p class="score">You got <strong>${correct}</strong> out of ${ROUND_SIZE}</p>
+          <p class="score">You got <strong>${correct}</strong> out of ${R.size}</p>
           <p class="stars">${'★'.repeat(stars)}<span>${'★'.repeat(3 - stars)}</span></p>
         </div>
       </div>
@@ -543,16 +599,18 @@ function showClassroom(fresh = null) {
 function showParents() {
   const list = store.players();
   const fmtDate = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const auto = store.autoBackupInfo();
   render(`
     <div class="screen parents">
       <div class="topbar">
         <button class="btn ghost" data-act="back">← Done</button>
         <h2>Grown-ups</h2><span></span>
       </div>
-      <p class="muted">Progress is saved in this iPad's browser. To keep it safe, add the game to the Home Screen (Share → Add to Home Screen) and save a backup now and then.</p>
+      <p class="muted">Progress is saved on this device only. Safari and a Home Screen icon keep separate progress, and so do the iPad and iPhone. To move a player across, save a backup file here, then use "Restore from backup" on the other one.</p>
       <div class="parent-actions">
         <button class="btn" data-act="export">⬇︎ Save a backup file</button>
         <button class="btn ghost" data-act="import">⬆︎ Restore from backup</button>
+        ${auto ? `<button class="btn ghost" data-act="autoRestore">↺ Go back to ${fmtDate(auto.day)}</button>` : ''}
         <input type="file" id="importFile" accept=".json,application/json" hidden>
       </div>
       ${list.length ? '' : '<p>No players yet.</p>'}
@@ -562,17 +620,21 @@ function showParents() {
         <section class="parent-card">
           <header>${animalSVG(p.animal)}<div><h3>${esc(p.name)}</h3><span class="muted">${p.history.length} ${p.history.length === 1 ? 'round' : 'rounds'} played · ${p.items.length} classroom things</span></div>
             <button class="btn ghost danger" data-act="del" data-id="${p.id}">Delete</button></header>
+          <div class="band-row"><span class="muted">Questions for</span>
+            <div class="seg">${Object.entries(BANDS).map(([k, b]) => `<button class="btn seg-btn ${bandOf(p) === k ? 'on' : 'ghost'}" data-act="band" data-id="${p.id}" data-b="${k}">${b.label}</button>`).join('')}</div>
+          </div>
           <div class="lv-table">
-            ${Object.entries(SUBJECTS).map(([k, s]) => {
-              const shown = Math.min(p.levels[k], s.levels.length);
+            ${subjectsFor(p).map(([k, s]) => {
+              const lvl = p.levels[k] || 1;
+              const shown = Math.min(lvl, s.levels.length);
               return `<div class="lv-row"><span class="lv-name" style="color:${s.colour}">${s.name}</span>
-                <span class="lv-label">Level ${shown}: ${s.levels[shown - 1].label}${p.levels[k] > s.levels.length ? ' (mastered)' : ''}</span>
+                <span class="lv-label">Level ${shown}: ${s.levels[shown - 1].label}${lvl > s.levels.length ? ' (mastered)' : ''}</span>
                 <button class="btn small" data-act="lvl" data-id="${p.id}" data-s="${k}" data-d="-1">−</button>
                 <button class="btn small" data-act="lvl" data-id="${p.id}" data-s="${k}" data-d="1">+</button></div>`;
             }).join('')}
           </div>
           ${recent.length ? `<table class="hist"><tr><th>Date</th><th>Subject</th><th>Level</th><th>Score</th><th>Time</th></tr>
-            ${recent.map((h) => `<tr><td>${fmtDate(h.date)}</td><td>${SUBJECTS[h.subject].name}</td><td>${h.level}</td><td>${h.correct}/${h.total}</td><td>${fmtTime(h.secs)}</td></tr>`).join('')}</table>` : '<p class="muted">No rounds played yet.</p>'}
+            ${recent.map((h) => `<tr><td>${fmtDate(h.date)}</td><td>${SUBJECTS[h.subject]?.name || h.subject}</td><td>${h.level}</td><td>${h.correct}/${h.total}</td><td>${fmtTime(h.secs)}</td></tr>`).join('')}</table>` : '<p class="muted">No rounds played yet.</p>'}
         </section>`;
       }).join('')}
     </div>`, {
@@ -580,7 +642,14 @@ function showParents() {
     lvl: (el) => {
       const p = store.getPlayer(el.dataset.id);
       const max = SUBJECTS[el.dataset.s].levels.length + 1;
-      p.levels[el.dataset.s] = Math.max(1, Math.min(max, p.levels[el.dataset.s] + Number(el.dataset.d)));
+      p.levels[el.dataset.s] = Math.max(1, Math.min(max, (p.levels[el.dataset.s] || 1) + Number(el.dataset.d)));
+      store.save();
+      showParents();
+    },
+    // Switching age group only changes which subjects are shown. Levels for both groups are kept.
+    band: (el) => {
+      const p = store.getPlayer(el.dataset.id);
+      p.band = el.dataset.b;
       store.save();
       showParents();
     },
@@ -600,6 +669,9 @@ function showParents() {
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     },
     import: () => document.getElementById('importFile').click(),
+    autoRestore: () => modal(`<p>Put all progress back to how it was when the game was first opened on ${fmtDate(auto.day)}?</p><p class="muted">Anything played since then will be lost. This is only for if something has gone wrong.</p>
+      <div class="modal-btns"><button class="btn ghost" data-act="no">Cancel</button><button class="btn" data-act="yes">Go back</button></div>`,
+      { yes: () => { store.restoreAutoBackup(); showParents(); } }),
   });
   document.getElementById('importFile').addEventListener('change', async (e) => {
     const file = e.target.files[0];

@@ -1,5 +1,5 @@
 // Offline support. Network first, so updates show up straight away; falls back to the cache when offline.
-const CACHE = 'critter-classroom-v1';
+const CACHE = 'critter-classroom-files-v2'; // only caches game files — progress lives in localStorage, untouched by this
 const FILES = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/main.js', 'js/levels.js', 'js/column.js', 'js/animals.js', 'js/classroom.js', 'js/store.js', 'js/sound.js',
