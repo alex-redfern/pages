@@ -2,6 +2,8 @@
 // Each item has a box [x, y, w, h] used to show it on its own as a reward card.
 // `needs` means it sits on another item, so it's only offered once that item is in the room.
 
+import { tr } from './i18n.js';
+
 const FONT = `font-family="Chalkboard SE, Comic Sans MS, ui-rounded, sans-serif"`;
 
 export const BASE_SCENE = `
@@ -43,11 +45,14 @@ export const ITEMS = [
   { id: 'bunting', name: 'Bunting', box: [0, 0, 1000, 70], svg: bunting },
   {
     id: 'whiteboard', name: 'Whiteboard', box: [292, 56, 316, 196],
-    svg: `<rect x="300" y="64" width="300" height="170" rx="6" fill="#fff" stroke="#9AA5B1" stroke-width="8"/>
+    // a getter, so the writing on the board follows the chosen language
+    get svg() {
+      return `<rect x="300" y="64" width="300" height="170" rx="6" fill="#fff" stroke="#9AA5B1" stroke-width="8"/>
       <rect x="330" y="236" width="240" height="9" rx="3" fill="#9AA5B1"/>
       <rect x="350" y="230" width="30" height="7" rx="2" fill="#4D96FF"/><rect x="390" y="230" width="30" height="7" rx="2" fill="#FF6B6B"/>
       <text x="330" y="125" font-size="38" fill="#4D96FF" ${FONT}>3 × 4 = 12</text>
-      <text x="330" y="185" font-size="30" fill="#FF6B6B" ${FONT}>Great work!</text>`,
+      <text x="330" y="185" font-size="30" fill="#FF6B6B" ${FONT}>${tr('Great work!')}</text>`;
+    },
   },
   {
     id: 'clock', name: 'Clock', box: [622, 56, 76, 76],
@@ -245,7 +250,7 @@ export function itemSVG(item, cls = '') {
 export function classroomSVG(owned, avatarSVGInner, fresh) {
   const set = new Set(owned);
   const parts = ITEMS.filter((i) => set.has(i.id)).map((i) => `<g class="${i.id === fresh ? 'fresh' : ''}" style="transform-origin:${i.box[0] + i.box[2] / 2}px ${i.box[1] + i.box[3]}px">${i.svg}</g>`);
-  return `<svg class="classroom-svg" viewBox="0 0 1000 600" role="img" aria-label="Your classroom">
+  return `<svg class="classroom-svg" viewBox="0 0 1000 600" role="img" aria-label="${tr('Your classroom')}">
     ${BASE_SCENE}${parts.join('')}
     <svg x="440" y="470" width="120" height="120" viewBox="0 0 120 120">${avatarSVGInner}</svg>
   </svg>`;

@@ -3,8 +3,10 @@
 // "scratch" boxes (carries / exchanges) are there to help and are never marked.
 
 import { digitAt } from './levels.js';
+import { tr, trList } from './i18n.js';
 
 const PLACE_SHORT = ['O', 'T', 'H', 'Th', 'TTh', 'HTh', 'M'];
+const placeName = (p) => tr(PLACE_NAME[p]);
 export const PLACE_NAME = ['ones', 'tens', 'hundreds', 'thousands', 'ten thousands', 'hundred thousands', 'millions'];
 const len = (n) => String(n).length;
 
@@ -38,7 +40,7 @@ export function buildLayout(q) {
     const numRow = (n, op) => [op ? { t: 'op', v: op } : { t: 'empty' }, ...cols((p) => (p < len(n) ? { t: 'digit', v: digitAt(n, p), place: p } : { t: 'empty' }))];
     const ansLen = len(ans);
 
-    rows.push({ cls: 'head', cells: [{ t: 'empty' }, ...cols((p) => ({ t: 'head', v: PLACE_SHORT[p] }))] });
+    rows.push({ cls: 'head', cells: [{ t: 'empty' }, ...cols((p) => ({ t: 'head', v: trList('PLACE_SHORT', PLACE_SHORT)[p] }))] });
 
     if (q.kind === 'sub') {
       rows.push({ cls: 'scratch-row', label: 'exchange', cells: [{ t: 'empty' }, ...cols((p) => (p < len(q.a) ? { t: 'scratch', id: 'x' + p } : { t: 'empty' }))] });
@@ -109,8 +111,8 @@ export function checkLayout(layout, values) {
 export function placeWord(layout, wrong) {
   const first = layout.order.find((id) => wrong.includes(id));
   if (!first) return '';
-  if (layout.kind === 'bus') return first === 'r' ? 'remainder' : 'answer';
-  return PLACE_NAME[layout.inputs[first].place] + ' column';
+  if (layout.kind === 'bus') return tr(first === 'r' ? 'the remainder' : 'the answer');
+  return tr('the {place} column', { place: placeName(layout.inputs[first].place) });
 }
 
 // A gentle hint about the box the child is working on. Explains the step, doesn't give the digit.
@@ -123,14 +125,14 @@ export function hintFor(q, layout, activeId) {
     const mod = 10 ** p;
     const carryIn = Math.floor(((q.a % mod) + (q.b % mod)) / mod);
     const a = digitAt(q.a, p), b = digitAt(q.b, p);
-    const name = PLACE_NAME[p];
+    const name = placeName(p);
     if (p >= len(q.a) && p >= len(q.b)) {
-      return carryIn ? `There's nothing left to add in the ${name} except the 1 you carried.` : `There's nothing to add in the ${name} column, so you can leave this box empty.`;
+      return carryIn ? tr("There's nothing left to add in the {name} except the 1 you carried.", { name }) : tr("There's nothing to add in the {name} column, so you can leave this box empty.", { name });
     }
     const parts = [a];
     if (p < len(q.b)) parts.push(b);
-    if (carryIn) parts.push(`${carryIn} carried`);
-    return `In the ${name}: ${parts.join(' + ')} = ? If the answer is 10 or more, write the ones digit here and carry the 1 to the next column.`;
+    if (carryIn) parts.push(tr('{n} carried', { n: carryIn }));
+    return tr('In the {name}: {sum} = ? If the answer is 10 or more, write the ones digit here and carry the 1 to the next column.', { name, sum: parts.join(' + ') });
   }
 
   if (q.kind === 'sub') {
@@ -138,62 +140,66 @@ export function hintFor(q, layout, activeId) {
     const mod = 10 ** p;
     const borrowIn = q.a % mod < q.b % mod ? 1 : 0;
     const a = digitAt(q.a, p), b = digitAt(q.b, p);
-    const name = PLACE_NAME[p];
+    const name = placeName(p);
     let pre = '';
     let top = a;
     if (borrowIn) {
-      if (a === 0) { pre = `This 0 had to exchange from the next column first (making 10), then gave 1 away, so it's now 9. `; top = 9; }
-      else { pre = `The ${a} in the ${name} gave 1 away to the column on its right, so it's now ${a - 1}. `; top = a - 1; }
+      if (a === 0) { pre = tr("This 0 had to exchange from the next column first (making 10), then gave 1 away, so it's now 9.") + ' '; top = 9; }
+      else { pre = tr("The {a} in the {name} gave 1 away to the column on its right, so it's now {now}.", { a, name, now: a - 1 }) + ' '; top = a - 1; }
     }
-    if (top < b) return `${pre}In the ${name}: ${top} − ${b} won't work, so exchange 1 from the next column along. Now it's ${top + 10} − ${b} = ?`;
-    return `${pre}In the ${name}: ${top} − ${b} = ?`;
+    if (top < b) return pre + tr("In the {name}: {top} − {b} won't work, so exchange 1 from the next column along. Now it's {top10} − {b} = ?", { name, top, b, top10: top + 10 });
+    return pre + tr('In the {name}: {top} − {b} = ?', { name, top, b });
   }
 
   if (q.kind === 'smul') {
     const p = info.place;
     const mod = 10 ** p;
     const carryIn = Math.floor(((q.a % mod) * q.b) / mod);
-    const name = PLACE_NAME[p];
-    if (p >= len(q.a)) return carryIn ? `Nothing left to multiply. Just write the ${carryIn} you carried.` : `Nothing left to multiply, so you can leave this box empty.`;
+    const name = placeName(p);
+    if (p >= len(q.a)) return carryIn ? tr('Nothing left to multiply. Just write the {n} you carried.', { n: carryIn }) : tr('Nothing left to multiply, so you can leave this box empty.');
     const a = digitAt(q.a, p);
-    return `In the ${name}: ${a} × ${q.b} = ?${carryIn ? ` Then add the ${carryIn} you carried.` : ''} Write the ones digit here and carry the tens to the next column.`;
+    return [
+      tr('In the {name}: {a} × {b} = ?', { name, a, b: q.b }),
+      carryIn ? tr('Then add the {n} you carried.', { n: carryIn }) : '',
+      tr('Write the ones digit here and carry the tens to the next column.'),
+    ].filter(Boolean).join(' ');
   }
 
   if (q.kind === 'bus') {
-    if (id === 'r') return `What's left over at the very end? That's the remainder.`;
+    if (id === 'r') return tr("What's left over at the very end? That's the remainder.");
     const i = info.place;
     const D = String(q.a);
     const before = i === 0 ? 0 : Number(D.slice(0, i)) % q.b;
     const running = before * 10 + Number(D[i]);
-    const carried = before ? ` (that's the ${before} you carried and the ${D[i]})` : '';
-    if (running < q.b) return `How many ${q.b}s go into ${running}${carried}? None! Write 0 (or leave it empty at the start) and carry the ${running} over to the next digit.`;
-    return `How many ${q.b}s go into ${running}${carried}? Write that above, and carry anything left over to the next digit.`;
+    const carried = before ? ' ' + tr("(that's the {c} you carried and the {d})", { c: before, d: D[i] }) : '';
+    if (running < q.b) return tr('How many {b}s go into {n}{carried}? None! Write 0 (or leave it empty at the start) and carry the {n} over to the next digit.', { b: q.b, n: running, carried });
+    return tr('How many {b}s go into {n}{carried}? Write that above, and carry anything left over to the next digit.', { b: q.b, n: running, carried });
   }
 
   // ages 5–7: adding and taking away
   if (q.op === '+') {
-    if (q.dots) return 'Count all the dots, starting from 1.';
+    if (q.dots) return tr('Count all the dots, starting from 1.');
     const [big, small] = q.a >= q.b ? [q.a, q.b] : [q.b, q.a];
-    if (big < 10 && big + small > 10) return `Make 10 first! ${big} + ${10 - big} = 10. Then add the ${small - (10 - big)} that's left.`;
-    if (small === 0) return `Adding 0 doesn't change anything!`;
+    if (big < 10 && big + small > 10) return tr("Make 10 first! {big} + {need} = 10. Then add the {left} that's left.", { big, need: 10 - big, left: small - (10 - big) });
+    if (small === 0) return tr("Adding 0 doesn't change anything!");
     const seq = Array.from({ length: Math.min(small, 3) }, (_, k) => big + k + 1);
-    return `Start at ${big} and count on ${small}: ${seq.join(', ')}${small > 3 ? '…' : ''}`;
+    return tr('Start at {big} and count on {small}: {seq}', { big, small, seq: seq.join(', ') + (small > 3 ? '…' : '') });
   }
   if (q.op === '−') {
-    if (q.dots) return `Count the dots that aren't crossed out.`;
+    if (q.dots) return tr("Count the dots that aren't crossed out.");
     const ones = q.a % 10;
-    if (q.a > 10 && q.a < 20 && q.b < 10 && q.b > ones) return `Take away ${ones} to get to 10 first. Then take away ${q.b - ones} more.`;
-    if (q.b === q.a) return 'Taking everything away leaves nothing!';
+    if (q.a > 10 && q.a < 20 && q.b < 10 && q.b > ones) return tr('Take away {ones} to get to 10 first. Then take away {more} more.', { ones, more: q.b - ones });
+    if (q.b === q.a) return tr('Taking everything away leaves nothing!');
     const seq = Array.from({ length: Math.min(q.b, 3) }, (_, k) => q.a - k - 1);
-    return `Start at ${q.a} and count back ${q.b}: ${seq.join(', ')}${q.b > 3 ? '…' : ''}`;
+    return tr('Start at {a} and count back {b}: {seq}', { a: q.a, b: q.b, seq: seq.join(', ') + (q.b > 3 ? '…' : '') });
   }
 
   // times-table facts
   if (q.op === '×') {
     const [count, step] = q.a <= q.b ? [q.a, q.b] : [q.b, q.a];
     const seq = Array.from({ length: Math.min(count - 1, 4) }, (_, k) => step * (k + 1));
-    return `${count} lots of ${step}. Count up in ${step}s: ${seq.join(', ')}… keep going until you've counted ${count}.`;
+    return tr("{count} lots of {step}. Count up in {step}s: {seq}… keep going until you've counted {count}.", { count, step, seq: seq.join(', ') });
   }
   const seq = Array.from({ length: 4 }, (_, k) => q.b * (k + 1));
-  return `How many ${q.b}s make ${q.a}? Count up in ${q.b}s: ${seq.join(', ')}… and count how many steps it takes.`;
+  return tr('How many {b}s make {a}? Count up in {b}s: {seq}… and count how many steps it takes.', { a: q.a, b: q.b, seq: seq.join(', ') });
 }

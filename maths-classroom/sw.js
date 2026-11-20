@@ -1,8 +1,8 @@
 // Offline support. Network first, so updates show up straight away; falls back to the cache when offline.
-const CACHE = 'critter-classroom-files-v2'; // only caches game files — progress lives in localStorage, untouched by this
+const CACHE = 'critter-classroom-files-v3'; // only caches game files — progress lives in localStorage, untouched by this
 const FILES = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
-  'js/main.js', 'js/levels.js', 'js/column.js', 'js/animals.js', 'js/classroom.js', 'js/store.js', 'js/sound.js',
+  'js/main.js', 'js/levels.js', 'js/column.js', 'js/animals.js', 'js/classroom.js', 'js/store.js', 'js/sound.js', 'js/i18n.js', 'js/lang/fr.js', 'js/lang/es.js',
   'icon-192.png', 'icon-512.png', 'apple-touch-icon.png',
 ];
 

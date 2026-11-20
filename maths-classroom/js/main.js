@@ -4,6 +4,7 @@ import { ANIMALS, animalSVG } from './animals.js';
 import { ITEMS, ITEM_BY_ID, itemSVG, classroomSVG, rewardChoices } from './classroom.js';
 import * as store from './store.js';
 import { sounds, unlockAudio, setSound } from './sound.js';
+import { tr, trList, plural, LANGS, getLang, setLang, locale } from './i18n.js';
 
 const app = document.getElementById('app');
 let actions = {};
@@ -27,10 +28,12 @@ const NAME_IDEAS = {
 const PRAISE = ['Brilliant!', 'Super work!', "You've got it!", 'Spot on!', 'Fantastic!', 'Great thinking!', 'Yes! Well done!', 'Smashing it!', 'Wonderful!', 'Nailed it!'];
 const COLUMN_PRAISE = ['Great column work!', 'Lovely careful working!', 'Every column right!', 'Brilliant method!'];
 const GREETINGS = ['What shall we practise today?', 'Ready to learn something new?', 'Lovely to see you!', 'Your brain is getting stronger every day!'];
+const FACT_OOPS = ['Not quite. Have another go!', 'Nearly! Try once more.', 'Have another think. Tap 💡 if you want a hint.'];
+const COLUMN_OOPS = ['Nearly! Have another look at {where}.', 'So close. Check {where}.', 'Almost there! Have another look at {where}.'];
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const fmtNum = (n) => Number(n).toLocaleString('en-GB');
+const fmtNum = (n) => Number(n).toLocaleString(locale());
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 // ---------- Light / dark ----------
@@ -49,8 +52,19 @@ function toggleTheme() {
   sounds.tap();
 }
 const themeButton = () => isDark()
-  ? `<button class="btn toggle" data-act="theme" aria-label="Switch to light mode">☀️<span class="lbl"> Light</span></button>`
-  : `<button class="btn toggle" data-act="theme" aria-label="Switch to dark mode">🌙<span class="lbl"> Dark</span></button>`;
+  ? `<button class="btn toggle" data-act="theme" aria-label="${tr('Switch to light mode')}">☀️<span class="lbl"> ${tr('Light')}</span></button>`
+  : `<button class="btn toggle" data-act="theme" aria-label="${tr('Switch to dark mode')}">🌙<span class="lbl"> ${tr('Dark')}</span></button>`;
+
+// ---------- Language ----------
+const langButton = () => `<button class="btn toggle" data-act="lang" aria-label="${tr('Language')}">${LANGS[getLang()].flag}<span class="lbl"> ${LANGS[getLang()].label}</span></button>`;
+function chooseLanguage(redrawScreen) {
+  sounds.tap();
+  const acts = {};
+  Object.keys(LANGS).forEach((k) => { acts['lang-' + k] = () => { setLang(k); redrawScreen(); }; });
+  modal(`<p><strong>${tr('Language')}</strong></p>
+    <div class="lang-list">${Object.entries(LANGS).map(([k, l]) => `<button class="btn lang-btn ${k === getLang() ? 'on' : 'ghost'}" data-act="lang-${k}"><span class="flag">${l.flag}</span> ${l.label}</button>`).join('')}</div>
+    <div class="modal-btns"><button class="btn ghost" data-act="close">${tr('Cancel')}</button></div>`, acts);
+}
 syncThemeColour();
 darkQuery.addEventListener?.('change', syncThemeColour);
 
@@ -89,26 +103,27 @@ function showPlayers() {
   const list = store.players();
   render(`
     <div class="screen center">
-      <div class="corner">${themeButton()}</div>
+      <div class="corner">${langButton()}${themeButton()}</div>
       <h1 class="title">Critter <span>Classroom</span></h1>
-      <p class="subtitle">Who's playing today?</p>
+      <p class="subtitle">${tr("Who's playing today?")}</p>
       <div class="player-grid">
         ${list.map((p) => `
           <button class="player-card" data-act="choose" data-id="${p.id}">
             ${animalSVG(p.animal)}
             <span class="pname">${esc(p.name)}</span>
-            <span class="pmeta">${p.items.length} classroom ${p.items.length === 1 ? 'thing' : 'things'}</span>
+            <span class="pmeta">${plural(p.items.length, '{n} classroom thing', '{n} classroom things')}</span>
           </button>`).join('')}
         <button class="player-card new" data-act="new">
           <span class="plus">＋</span>
-          <span class="pname">New player</span>
+          <span class="pname">${tr('New player')}</span>
         </button>
       </div>
-      <button class="grownups" id="grownups"><span class="fill"></span>Grown-ups (press and hold)</button>
+      <button class="grownups" id="grownups"><span class="fill"></span>${tr('Grown-ups (press and hold)')}</button>
     </div>`, {
     choose: (el) => { player = store.getPlayer(el.dataset.id); store.setLastPlayer(player.id); setSound(player.settings.sound); showHome(); },
     new: () => showCreate(),
     theme: () => { toggleTheme(); showPlayers(); },
+    lang: () => chooseLanguage(showPlayers),
   });
   holdToOpen(document.getElementById('grownups'), showParents);
 }
@@ -128,27 +143,27 @@ function showCreate(chosen = null, band = null) {
   render(`
     <div class="screen">
       <div class="topbar">
-        ${backTo ? `<button class="btn ghost" data-act="back">← Back</button>` : '<span></span>'}
-        <h2>Make your character</h2><span></span>
+        ${backTo ? `<button class="btn ghost" data-act="back">← ${tr('Back')}</button>` : '<span></span>'}
+        <h2>${tr('Make your character')}</h2><span></span>
       </div>
-      <p class="step">1. Pick an animal</p>
+      <p class="step">1. ${tr('Pick an animal')}</p>
       <div class="animal-grid">
         ${Object.entries(ANIMALS).map(([k, a]) => `
           <button class="animal-pick ${k === chosen ? 'chosen' : ''}" data-act="animal" data-k="${k}">
-            ${animalSVG(k)}<span>${a.name}</span>
+            ${animalSVG(k)}<span>${tr(a.name)}</span>
           </button>`).join('')}
       </div>
-      <p class="step">2. How old are you?</p>
+      <p class="step">2. ${tr('How old are you?')}</p>
       <div class="chips ages">
-        ${Object.entries(BANDS).map(([k, b]) => `<button class="chip age ${k === band ? 'chosen' : ''}" data-act="age" data-b="${k}">${b.ask}</button>`).join('')}
+        ${Object.entries(BANDS).map(([k, b]) => `<button class="chip age ${k === band ? 'chosen' : ''}" data-act="age" data-b="${k}">${tr(b.ask)}</button>`).join('')}
       </div>
       <div class="name-step ${chosen ? '' : 'disabled'}">
-        <p class="step">3. Give your ${chosen ? ANIMALS[chosen].name.toLowerCase() : 'animal'} a name</p>
+        <p class="step">3. ${tr('Give {your} a name', { your: tr(chosen ? `your ${ANIMALS[chosen].name.toLowerCase()}` : 'your animal') })}</p>
         <div class="name-row">
-          <input id="name" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Type a name…" ${chosen ? '' : 'disabled'}>
-          <button class="btn big go" data-act="go" id="go" disabled>Let's go!</button>
+          <input id="name" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${tr('Type a name…')}" ${chosen ? '' : 'disabled'}>
+          <button class="btn big go" data-act="go" id="go" disabled>${tr("Let's go!")}</button>
         </div>
-        ${chosen ? `<div class="chips">${NAME_IDEAS[chosen].map((n) => `<button class="chip" data-act="idea" data-n="${n}">${n}</button>`).join('')}</div>` : ''}
+        ${chosen ? `<div class="chips">${trList('NAMES_' + chosen, NAME_IDEAS[chosen]).map((n) => `<button class="chip" data-act="idea" data-n="${n}">${n}</button>`).join('')}</div>` : ''}
       </div>
     </div>`, {
     back: () => backTo(),
@@ -162,7 +177,7 @@ function showCreate(chosen = null, band = null) {
       store.requestPersistence();
       setSound(true);
       sounds.levelUp();
-      showHome('Welcome to Critter Classroom! Pick something to practise. Every round you finish adds something new to your classroom.');
+      showHome('welcome');
     },
   });
   const inp = document.getElementById('name');
@@ -181,23 +196,28 @@ function redraw(chosen, band) {
 }
 
 // ================= Home =================
+// greeting: 'welcome' for a brand-new player, otherwise a friendly line picked at random.
 function showHome(greeting) {
   const lv = player.levels;
+  const hello = greeting === 'welcome'
+    ? tr('Welcome to Critter Classroom! Pick something to practise. Every round you finish adds something new to your classroom.')
+    : pick(trList('GREETINGS', GREETINGS));
   render(`
     <div class="screen">
       <div class="topbar">
-        <button class="btn ghost" data-act="switch" aria-label="Change player">⇄<span class="lbl"> Change player</span></button>
+        <button class="btn ghost" data-act="switch" aria-label="${tr('Change player')}">⇄<span class="lbl"> ${tr('Change player')}</span></button>
         <span></span>
         <div class="toggles">
-          <button class="btn toggle ${player.settings.timer ? 'on' : ''}" data-act="timer" aria-label="Timer ${player.settings.timer ? 'on' : 'off'}">⏱<span class="lbl"> Timer ${player.settings.timer ? 'on' : 'off'}</span></button>
-          <button class="btn toggle ${player.settings.sound ? 'on' : ''}" data-act="sound" aria-label="Sound ${player.settings.sound ? 'on' : 'off'}">${player.settings.sound ? '🔊<span class="lbl"> Sound on</span>' : '🔇<span class="lbl"> Sound off</span>'}</button>
+          <button class="btn toggle ${player.settings.timer ? 'on' : ''}" data-act="timer" aria-label="${tr(player.settings.timer ? 'Timer on' : 'Timer off')}">⏱<span class="lbl"> ${tr(player.settings.timer ? 'Timer on' : 'Timer off')}</span></button>
+          <button class="btn toggle ${player.settings.sound ? 'on' : ''}" data-act="sound" aria-label="${tr(player.settings.sound ? 'Sound on' : 'Sound off')}">${player.settings.sound ? '🔊' : '🔇'}<span class="lbl"> ${tr(player.settings.sound ? 'Sound on' : 'Sound off')}</span></button>
+          ${langButton()}
           ${themeButton()}
         </div>
       </div>
       <div class="hello">
         ${animalSVG(player.animal, 'bob')}
         <div class="bubble big">
-          <strong>Hi, ${esc(player.name)}!</strong><br>${esc(greeting || pick(GREETINGS))}
+          <strong>${tr('Hi, {name}!', { name: esc(player.name) })}</strong><br>${esc(hello)}
         </div>
       </div>
       <div class="subject-grid">
@@ -208,21 +228,22 @@ function showHome(greeting) {
           return `
           <button class="subject" style="--c:${s.colour}" data-act="play" data-s="${k}">
             <span class="sym">${s.symbol}</span>
-            <span class="sname">${s.name}</span>
-            <span class="slevel">Level ${shown}${level > max ? ' ⭐' : ''}: ${s.levels[shown - 1].label}</span>
+            <span class="sname">${tr(s.name)}</span>
+            <span class="slevel">${tr('Level {n}: {label}', { n: shown + (level > max ? ' ⭐' : ''), label: tr(s.levels[shown - 1].label) })}</span>
             <span class="dots">${s.levels.map((_, i) => `<i class="${i < level - 1 ? 'done' : i === level - 1 ? 'now' : ''}"></i>`).join('')}</span>
           </button>`;
         }).join('')}
       </div>
       <button class="classroom-btn" data-act="room">
         <span class="mini-room">${classroomSVG(player.items, ANIMALS[player.animal].svg)}</span>
-        <span><strong>My classroom</strong><br>${player.items.length} of ${ITEMS.length} things collected</span>
+        <span><strong>${tr('My classroom')}</strong><br>${tr('{n} of {total} things collected', { n: player.items.length, total: ITEMS.length })}</span>
       </button>
     </div>`, {
     switch: () => showPlayers(),
     timer: () => { player.settings.timer = !player.settings.timer; store.save(); showHome(greeting); },
     sound: () => { player.settings.sound = !player.settings.sound; setSound(player.settings.sound); store.save(); sounds.tap(); showHome(greeting); },
     theme: () => { toggleTheme(); showHome(greeting); },
+    lang: () => chooseLanguage(() => showHome(greeting)),
     play: (el) => startRound(el.dataset.s),
     room: () => showClassroom(),
   });
@@ -237,7 +258,7 @@ function startRound(subject) {
   render(`
     <div class="round" style="--c:${s.colour}">
       <div class="topbar round-top">
-        <button class="btn ghost" data-act="quit">✕ Stop</button>
+        <button class="btn ghost" data-act="quit">✕ ${tr('Stop')}</button>
         <div class="progress" id="progress"></div>
         <div class="timer" id="timer">${player.settings.timer ? '0:00' : ''}</div>
       </div>
@@ -248,15 +269,15 @@ function startRound(subject) {
         </div>
         <div class="pad" id="pad">
           ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button class="key" data-act="key" data-k="${n}">${n}</button>`).join('')}
-          <button class="key back" data-act="key" data-k="back" aria-label="Delete">⌫</button>
+          <button class="key back" data-act="key" data-k="back" aria-label="${tr('Delete')}">⌫</button>
           <button class="key" data-act="key" data-k="0">0</button>
-          <button class="key hint" data-act="hint">💡<small>Hint</small></button>
-          <button class="key check" id="check" data-act="check">Check</button>
+          <button class="key hint" data-act="hint">💡<small>${tr('Hint')}</small></button>
+          <button class="key check" id="check" data-act="check">${tr('Check')}</button>
         </div>
       </div>
     </div>`, {
-    quit: () => modal(`<p>Stop this round?</p><p class="muted">You'll get a new classroom thing when you finish a round.</p>
-      <div class="modal-btns"><button class="btn" data-act="stay">Keep going</button><button class="btn ghost" data-act="leave">Stop</button></div>`,
+    quit: () => modal(`<p>${tr('Stop this round?')}</p><p class="muted">${tr("You'll get a new classroom thing when you finish a round.")}</p>
+      <div class="modal-btns"><button class="btn" data-act="stay">${tr('Keep going')}</button><button class="btn ghost" data-act="leave">${tr('Stop')}</button></div>`,
       { leave: () => showHome() }),
     key: (el) => pressKey(el.dataset.k),
     cell: (el) => {
@@ -300,13 +321,13 @@ function loadQuestion() {
   }
   R.maxTries = q.kind === 'fact' ? 2 : 3;
   const intro = {
-    fact: q.dots ? 'Count the dots to help you!' : '',
-    add: 'Add each column, starting with the ones on the right.',
-    sub: 'Subtract each column, starting with the ones. Tap a top digit to cross it out when you exchange.',
-    smul: 'Multiply each digit, starting with the ones on the right.',
-    bus: 'Bus stop! Work from left to right.',
+    fact: q.dots ? tr('Count the dots to help you!') : '',
+    add: tr('Add each column, starting with the ones on the right.'),
+    sub: tr('Subtract each column, starting with the ones. Tap a top digit to cross it out when you exchange.'),
+    smul: tr('Multiply each digit, starting with the ones on the right.'),
+    bus: tr('Bus stop! Work from left to right.'),
   }[q.kind];
-  say(R.i === 0 || q.kind !== 'fact' ? intro || `Question ${R.i + 1} of ${R.size}. Take your time.` : '', 'calm');
+  say(R.i === 0 || q.kind !== 'fact' ? intro || tr('Question {i} of {n}. Take your time.', { i: R.i + 1, n: R.size }) : '', 'calm');
   paintProgress();
   paintQuestion();
 }
@@ -350,11 +371,11 @@ function paintQuestion() {
   }
   const check = document.getElementById('check');
   if (R.phase === 'answer') {
-    check.textContent = 'Check';
+    check.textContent = tr('Check');
     check.dataset.act = 'check';
     check.classList.remove('next');
   } else {
-    check.textContent = R.i === R.size - 1 ? 'Finish' : 'Next →';
+    check.textContent = R.i === R.size - 1 ? tr('Finish') : `${tr('Next')} →`;
     check.dataset.act = 'next';
     check.classList.add('next');
   }
@@ -395,7 +416,7 @@ function gridHTML(layout) {
   const rows = layout.rows.reduce((n, r) => n + (/head|scratch/.test(r.cls) ? 0.6 : 1), 0);
   return `<div class="grid kind-${layout.kind}" style="--cols:${cols};--rows:${rows}">${layout.rows.map((row) => {
     const cells = row.cells.map(cell);
-    if (row.label) cells[0] = `<div class="c row-label">${row.label}</div>`;
+    if (row.label) cells[0] = `<div class="c row-label">${tr(row.label)}</div>`;
     return `<div class="g-row r-${row.cls}">${cells.join('')}</div>`;
   }).join('')}</div>`;
 }
@@ -440,11 +461,11 @@ function checkAnswer() {
   let wrong = [];
   if (q.kind === 'fact') {
     const v = R.values.f || '';
-    if (!v) { say('Type your answer on the number pad first.', 'calm'); return; }
+    if (!v) { say(tr('Type your answer on the number pad first.'), 'calm'); return; }
     if (Number(v) !== q.answer) wrong = ['f'];
   } else {
     const res = checkLayout(R.layout, R.values);
-    if (!res.complete && !res.wrong.length) { say('There are still some empty boxes to fill in.', 'calm'); return; }
+    if (!res.complete && !res.wrong.length) { say(tr('There are still some empty boxes to fill in.'), 'calm'); return; }
     if (!res.complete) {
       // empty boxes count as "have another look" too
       Object.entries(R.layout.inputs).forEach(([id, info]) => { if (!info.optional && !(R.values[id] ?? '')) res.wrong.push(id); });
@@ -457,7 +478,7 @@ function checkAnswer() {
     R.phase = 'done';
     R.results[R.i] = { ok: true, tries: R.attempts };
     sounds.correct();
-    say(q.kind === 'fact' || Math.random() < 0.5 ? pick(PRAISE) : pick(COLUMN_PRAISE), 'happy');
+    say(q.kind === 'fact' || Math.random() < 0.5 ? pick(trList('PRAISE', PRAISE)) : pick(trList('COLUMN_PRAISE', COLUMN_PRAISE)), 'happy');
     paintQuestion();
     paintProgress();
     bounceCoach();
@@ -475,8 +496,8 @@ function checkAnswer() {
     else Object.entries(R.layout.inputs).forEach(([id, info]) => { R.values[id] = info.optional && info.expected === '0' ? '' : info.expected; });
     sounds.tryAgain();
     say(q.kind === 'fact'
-      ? `It's ${q.a} ${q.op} ${q.b} = ${q.answer}. You'll remember it next time!`
-      : `Here's the answer: ${fmtNum(answerOf(q))}${q.kind === 'bus' && q.rem && q.a % q.b ? ` r ${q.a % q.b}` : ''}. Have a look at how it works, then try the next one.`, 'calm');
+      ? tr("It's {sum} = {answer}. You'll remember it next time!", { sum: `${q.a} ${q.op} ${q.b}`, answer: q.answer })
+      : tr("Here's the answer: {answer}. Have a look at how it works, then try the next one.", { answer: `${fmtNum(answerOf(q))}${q.kind === 'bus' && q.rem && q.a % q.b ? ` r ${q.a % q.b}` : ''}` }), 'calm');
     paintQuestion();
     paintProgress();
     return;
@@ -485,11 +506,11 @@ function checkAnswer() {
   R.wrong = new Set(wrong);
   sounds.tryAgain();
   if (q.kind === 'fact') {
-    say(pick(['Not quite. Have another go!', 'Nearly! Try once more.', 'Have another think. Tap 💡 if you want a hint.']), 'oops');
+    say(pick(trList('FACT_OOPS', FACT_OOPS)), 'oops');
   } else {
     const where = placeWord(R.layout, wrong);
     R.active = R.layout.order.find((id) => wrong.includes(id)) || R.active;
-    say(pick([`Nearly! Have another look at the ${where}.`, `So close. Check the ${where}.`, `Almost there! The ${where} needs another look.`]), 'oops');
+    say(tr(pick(trList('COLUMN_OOPS', COLUMN_OOPS)), { where }), 'oops');
   }
   paintQuestion();
 }
@@ -531,9 +552,9 @@ function finishRound() {
     const best = player.best[key];
     if (!best || secs < best) {
       player.best[key] = secs;
-      timeMsg = best ? `⏱ ${fmtTime(secs)}: you beat your own best of ${fmtTime(best)}!` : `⏱ ${fmtTime(secs)}: that's your first time for this level.`;
+      timeMsg = '⏱ ' + (best ? tr('{t}: you beat your own best of {best}!', { t: fmtTime(secs), best: fmtTime(best) }) : tr("{t}: that's your first time for this level.", { t: fmtTime(secs) }));
     } else {
-      timeMsg = `⏱ ${fmtTime(secs)}. Your best is ${fmtTime(best)}.`;
+      timeMsg = '⏱ ' + tr('{t}. Your best is {best}.', { t: fmtTime(secs), best: fmtTime(best) });
     }
   }
   store.save();
@@ -542,11 +563,11 @@ function finishRound() {
 
   const stars = correct >= R.size * 0.9 ? 3 : correct >= R.size * 0.7 ? 2 : 1;
   let levelMsg;
-  if (passed && before < max) levelMsg = `🎉 You've moved up to <strong>Level ${before + 1}: ${s.levels[before].label}</strong>!`;
-  else if (passed) levelMsg = `🌟 You've mastered every ${s.name.toLowerCase()} level. Amazing!`;
-  else levelMsg = `You need ${passMark} right to move up. Let's practise Level ${R.level} a bit more. You're getting stronger every round!`;
+  if (passed && before < max) levelMsg = '🎉 ' + tr("You've moved up to <strong>Level {n}: {label}</strong>!", { n: before + 1, label: tr(s.levels[before].label) });
+  else if (passed) levelMsg = '🌟 ' + tr("You've mastered every level of {subject}. Amazing!", { subject: tr(s.name).toLowerCase() });
+  else levelMsg = tr("You need {pass} right to move up. Let's practise Level {level} a bit more. You're getting stronger every round!", { pass: passMark, level: R.level });
   const choices = rewardChoices(player.items);
-  const breakMsg = session.rounds % 2 === 0 ? `<p class="break">You've done ${session.questions} questions today. Maybe time for a break? Your classroom will be waiting.</p>` : '';
+  const breakMsg = session.rounds % 2 === 0 ? `<p class="break">${tr("You've done {n} questions today. Maybe time for a break? Your classroom will be waiting.", { n: session.questions })}</p>` : '';
 
   if (passed) sounds.levelUp(); else sounds.reward();
 
@@ -555,8 +576,8 @@ function finishRound() {
       <div class="results-top">
         ${animalSVG(player.animal, 'jump-loop')}
         <div>
-          <h2>Round complete!</h2>
-          <p class="score">You got <strong>${correct}</strong> out of ${R.size}</p>
+          <h2>${tr('Round complete!')}</h2>
+          <p class="score">${tr('You got <strong>{c}</strong> out of {n}', { c: correct, n: R.size })}</p>
           <p class="stars">${'★'.repeat(stars)}<span>${'★'.repeat(3 - stars)}</span></p>
         </div>
       </div>
@@ -564,10 +585,10 @@ function finishRound() {
       ${timeMsg ? `<p class="time-msg">${timeMsg}</p>` : ''}
       ${breakMsg}
       ${choices.length ? `
-        <h3>Choose something new for your classroom</h3>
+        <h3>${tr('Choose something new for your classroom')}</h3>
         <div class="reward-grid">
-          ${choices.map((it) => `<button class="reward" data-act="reward" data-id="${it.id}">${itemSVG(it)}<span>${it.name}</span></button>`).join('')}
-        </div>` : `<h3>Your classroom is complete! 🎉</h3><button class="btn big" data-act="home">Back home</button>`}
+          ${choices.map((it) => `<button class="reward" data-act="reward" data-id="${it.id}">${itemSVG(it)}<span>${tr(it.name)}</span></button>`).join('')}
+        </div>` : `<h3>${tr('Your classroom is complete!')} 🎉</h3><button class="btn big" data-act="home">${tr('Back home')}</button>`}
     </div>`, {
     reward: (el) => {
       player.items.push(el.dataset.id);
@@ -584,57 +605,57 @@ function showClassroom(fresh = null) {
   render(`
     <div class="screen">
       <div class="topbar">
-        <button class="btn ghost" data-act="home">← Home</button>
-        <h2>${esc(player.name)}'s classroom</h2>
-        <span class="muted">${player.items.length} of ${ITEMS.length}</span>
+        <button class="btn ghost" data-act="home">← ${tr('Home')}</button>
+        <h2>${tr("{name}'s classroom", { name: esc(player.name) })}</h2>
+        <span class="muted">${tr('{n} of {total}', { n: player.items.length, total: ITEMS.length })}</span>
       </div>
-      ${fresh ? `<p class="new-item">✨ Your new <strong>${ITEM_BY_ID[fresh].name.toLowerCase()}</strong> is in the classroom!</p>` : ''}
+      ${fresh ? `<p class="new-item">✨ ${tr('New in your classroom: <strong>{item}</strong>!', { item: tr(ITEM_BY_ID[fresh].name) })}</p>` : ''}
       <div class="classroom">${classroomSVG(player.items, ANIMALS[player.animal].svg, fresh)}</div>
-      ${!player.items.length ? '<p class="muted center-text">Your classroom is empty for now. Finish a round to choose your first thing!</p>' : ''}
-      ${fresh ? `<div class="center-text"><button class="btn big" data-act="home">Back home</button></div>` : ''}
+      ${!player.items.length ? `<p class="muted center-text">${tr('Your classroom is empty for now. Finish a round to choose your first thing!')}</p>` : ''}
+      ${fresh ? `<div class="center-text"><button class="btn big" data-act="home">${tr('Back home')}</button></div>` : ''}
     </div>`, { home: () => showHome() });
 }
 
 // ================= Grown-ups =================
 function showParents() {
   const list = store.players();
-  const fmtDate = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const fmtDate = (iso) => new Date(iso).toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
   const auto = store.autoBackupInfo();
   render(`
     <div class="screen parents">
       <div class="topbar">
-        <button class="btn ghost" data-act="back">← Done</button>
-        <h2>Grown-ups</h2><span></span>
+        <button class="btn ghost" data-act="back">← ${tr('Done')}</button>
+        <h2>${tr('Grown-ups')}</h2><span></span>
       </div>
-      <p class="muted">Progress is saved on this device only. Safari and a Home Screen icon keep separate progress, and so do the iPad and iPhone. To move a player across, save a backup file here, then use "Restore from backup" on the other one.</p>
+      <p class="muted">${tr('Progress is saved on this device only. Safari and a Home Screen icon keep separate progress, and so do the iPad and iPhone. To move a player across, save a backup file here, then use "Restore from backup" on the other one.')}</p>
       <div class="parent-actions">
-        <button class="btn" data-act="export">⬇︎ Save a backup file</button>
-        <button class="btn ghost" data-act="import">⬆︎ Restore from backup</button>
-        ${auto ? `<button class="btn ghost" data-act="autoRestore">↺ Go back to ${fmtDate(auto.day)}</button>` : ''}
+        <button class="btn" data-act="export">⬇︎ ${tr('Save a backup file')}</button>
+        <button class="btn ghost" data-act="import">⬆︎ ${tr('Restore from backup')}</button>
+        ${auto ? `<button class="btn ghost" data-act="autoRestore">↺ ${tr('Go back to {day}', { day: fmtDate(auto.day) })}</button>` : ''}
         <input type="file" id="importFile" accept=".json,application/json" hidden>
       </div>
-      ${list.length ? '' : '<p>No players yet.</p>'}
+      ${list.length ? '' : `<p>${tr('No players yet.')}</p>`}
       ${list.map((p) => {
         const recent = p.history.slice(-10).reverse();
         return `
         <section class="parent-card">
-          <header>${animalSVG(p.animal)}<div><h3>${esc(p.name)}</h3><span class="muted">${p.history.length} ${p.history.length === 1 ? 'round' : 'rounds'} played · ${p.items.length} classroom things</span></div>
-            <button class="btn ghost danger" data-act="del" data-id="${p.id}">Delete</button></header>
-          <div class="band-row"><span class="muted">Questions for</span>
-            <div class="seg">${Object.entries(BANDS).map(([k, b]) => `<button class="btn seg-btn ${bandOf(p) === k ? 'on' : 'ghost'}" data-act="band" data-id="${p.id}" data-b="${k}">${b.label}</button>`).join('')}</div>
+          <header>${animalSVG(p.animal)}<div><h3>${esc(p.name)}</h3><span class="muted">${plural(p.history.length, '{n} round played', '{n} rounds played')} · ${plural(p.items.length, '{n} classroom thing', '{n} classroom things')}</span></div>
+            <button class="btn ghost danger" data-act="del" data-id="${p.id}">${tr('Delete')}</button></header>
+          <div class="band-row"><span class="muted">${tr('Questions for')}</span>
+            <div class="seg">${Object.entries(BANDS).map(([k, b]) => `<button class="btn seg-btn ${bandOf(p) === k ? 'on' : 'ghost'}" data-act="band" data-id="${p.id}" data-b="${k}">${tr(b.label)}</button>`).join('')}</div>
           </div>
           <div class="lv-table">
             ${subjectsFor(p).map(([k, s]) => {
               const lvl = p.levels[k] || 1;
               const shown = Math.min(lvl, s.levels.length);
-              return `<div class="lv-row"><span class="lv-name" style="color:${s.colour}">${s.name}</span>
-                <span class="lv-label">Level ${shown}: ${s.levels[shown - 1].label}${lvl > s.levels.length ? ' (mastered)' : ''}</span>
+              return `<div class="lv-row"><span class="lv-name" style="color:${s.colour}">${tr(s.name)}</span>
+                <span class="lv-label">${tr('Level {n}: {label}', { n: shown, label: tr(s.levels[shown - 1].label) })}${lvl > s.levels.length ? ` (${tr('mastered')})` : ''}</span>
                 <button class="btn small" data-act="lvl" data-id="${p.id}" data-s="${k}" data-d="-1">−</button>
                 <button class="btn small" data-act="lvl" data-id="${p.id}" data-s="${k}" data-d="1">+</button></div>`;
             }).join('')}
           </div>
-          ${recent.length ? `<table class="hist"><tr><th>Date</th><th>Subject</th><th>Level</th><th>Score</th><th>Time</th></tr>
-            ${recent.map((h) => `<tr><td>${fmtDate(h.date)}</td><td>${SUBJECTS[h.subject]?.name || h.subject}</td><td>${h.level}</td><td>${h.correct}/${h.total}</td><td>${fmtTime(h.secs)}</td></tr>`).join('')}</table>` : '<p class="muted">No rounds played yet.</p>'}
+          ${recent.length ? `<table class="hist"><tr><th>${tr('Date')}</th><th>${tr('Subject')}</th><th>${tr('Level')}</th><th>${tr('Score')}</th><th>${tr('Time')}</th></tr>
+            ${recent.map((h) => `<tr><td>${fmtDate(h.date)}</td><td>${SUBJECTS[h.subject] ? tr(SUBJECTS[h.subject].name) : h.subject}</td><td>${h.level}</td><td>${h.correct}/${h.total}</td><td>${fmtTime(h.secs)}</td></tr>`).join('')}</table>` : `<p class="muted">${tr('No rounds played yet.')}</p>`}
         </section>`;
       }).join('')}
     </div>`, {
@@ -655,8 +676,8 @@ function showParents() {
     },
     del: (el) => {
       const p = store.getPlayer(el.dataset.id);
-      modal(`<p>Delete <strong>${esc(p.name)}</strong> and all their progress?</p><p class="muted">This can't be undone (unless you have a backup file).</p>
-        <div class="modal-btns"><button class="btn" data-act="no">Keep</button><button class="btn danger" data-act="yes">Delete</button></div>`,
+      modal(`<p>${tr('Delete <strong>{name}</strong> and all their progress?', { name: esc(p.name) })}</p><p class="muted">${tr("This can't be undone (unless you have a backup file).")}</p>
+        <div class="modal-btns"><button class="btn" data-act="no">${tr('Keep')}</button><button class="btn danger" data-act="yes">${tr('Delete')}</button></div>`,
         { yes: () => { store.deletePlayer(p.id); showParents(); } });
     },
     export: () => {
@@ -669,19 +690,19 @@ function showParents() {
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     },
     import: () => document.getElementById('importFile').click(),
-    autoRestore: () => modal(`<p>Put all progress back to how it was when the game was first opened on ${fmtDate(auto.day)}?</p><p class="muted">Anything played since then will be lost. This is only for if something has gone wrong.</p>
-      <div class="modal-btns"><button class="btn ghost" data-act="no">Cancel</button><button class="btn" data-act="yes">Go back</button></div>`,
+    autoRestore: () => modal(`<p>${tr('Put all progress back to how it was when the game was first opened on {day}?', { day: fmtDate(auto.day) })}</p><p class="muted">${tr('Anything played since then will be lost. This is only for if something has gone wrong.')}</p>
+      <div class="modal-btns"><button class="btn ghost" data-act="no">${tr('Cancel')}</button><button class="btn" data-act="yes">${tr('Go back')}</button></div>`,
       { yes: () => { store.restoreAutoBackup(); showParents(); } }),
   });
   document.getElementById('importFile').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const text = await file.text();
-    modal(`<p>Replace all the progress on this iPad with the backup?</p>
-      <div class="modal-btns"><button class="btn ghost" data-act="no">Cancel</button><button class="btn" data-act="yes">Replace</button></div>`, {
+    modal(`<p>${tr('Replace all the progress on this device with the backup?')}</p>
+      <div class="modal-btns"><button class="btn ghost" data-act="no">${tr('Cancel')}</button><button class="btn" data-act="yes">${tr('Replace')}</button></div>`, {
       yes: () => {
         try { store.importJSON(text); showParents(); }
-        catch (err) { modal(`<p>${esc(err.message)}</p><div class="modal-btns"><button class="btn" data-act="ok">OK</button></div>`, {}); }
+        catch (err) { modal(`<p>${esc(tr(err.message))}</p><div class="modal-btns"><button class="btn" data-act="ok">${tr('OK')}</button></div>`, {}); }
       },
     });
   });
